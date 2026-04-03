@@ -1,43 +1,72 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import LoginPage from './pages/LoginPage';
+
+const PrivateRoute = ({ children }) => {
+    const { user, loading } = useAuth();
+    if (loading) return <div>Loading...</div>;
+    return user ? children : <Navigate to="/login" />;
+};
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <div className="min-h-screen flex flex-col font-sans">
-        <header className="bg-gradient-to-r from-blue-700 to-indigo-800 text-white p-6 shadow-xl relative z-10">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <h1 className="text-3xl font-extrabold tracking-tight">Smart Campus <span className="text-blue-300 font-light">Hub</span></h1>
-            <nav className="hidden md:flex space-x-6 text-sm font-medium">
-              <a href="#" className="hover:text-blue-300 transition">Dashboard</a>
-              <a href="#" className="hover:text-blue-300 transition">Profile</a>
-              <a href="#" className="hover:text-blue-300 transition">Settings</a>
-            </nav>
-          </div>
-        </header>
-        <main className="flex-grow bg-slate-50 relative">
-          <div className="absolute inset-0 bg-grid-slate-200 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] bg-[length:20px_20px]"></div>
-          <div className="max-w-7xl mx-auto p-8 relative z-10">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              {/* Team Members will drop their module routes here */}
-              {/* <Route path="/facilities/*" element={<FacilitiesModule />} /> */}
-              {/* <Route path="/bookings/*" element={<BookingsModule />} /> */}
-              {/* <Route path="/incidents/*" element={<IncidentsModule />} /> */}
-              {/* <Route path="/notifications/*" element={<NotificationsModule />} /> */}
-            </Routes>
-          </div>
-        </main>
-      </div>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <AppContent />
+      </BrowserRouter>
+    </AuthProvider>
+  );
+}
+
+function AppContent() {
+  const { user, logout } = useAuth();
+
+  return (
+    <div className="min-h-screen flex flex-col font-sans">
+      <header className="bg-gradient-to-r from-blue-700 to-indigo-800 text-white p-6 shadow-xl relative z-10">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <h1 className="text-3xl font-extrabold tracking-tight">
+            Smart Campus <span className="text-blue-300 font-light">Hub</span>
+          </h1>
+          <nav className="hidden md:flex space-x-6 text-sm font-medium items-center">
+            {user && (
+              <>
+                <span className="text-blue-200">Welcome, {user.name} ({user.role})</span>
+                <a href="/" className="hover:text-blue-300 transition">Dashboard</a>
+                <button onClick={logout} className="bg-red-500 hover:bg-red-600 px-3 py-1 rounded transition">Logout</button>
+              </>
+            )}
+          </nav>
+        </div>
+      </header>
+      <main className="flex-grow bg-slate-50 relative">
+        <div className="absolute inset-0 bg-grid-slate-200 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] bg-[length:20px_20px]"></div>
+        <div className="max-w-7xl mx-auto p-8 relative z-10">
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/loginSuccess" element={<Navigate to="/" />} />
+            <Route path="/" element={
+              <PrivateRoute>
+                <Home />
+              </PrivateRoute>
+            } />
+          </Routes>
+        </div>
+      </main>
+    </div>
   );
 }
 
 function Home() {
+  const { user } = useAuth();
   return (
     <div className="text-center py-10">
       <h2 className="text-4xl font-black text-slate-800 mb-6 drop-shadow-sm">Welcome to your Operations Dashboard</h2>
-      <p className="text-lg text-slate-500 mb-12 max-w-2xl mx-auto">Select a system module below to jump into the control center. Managing campus operations has never been this seamless.</p>
+      <p className="text-lg text-slate-500 mb-12 max-w-2xl mx-auto">
+        Logged in as <span className="font-bold text-indigo-600">{user?.role}</span>. 
+        Select a system module below to jump into the control center. Managing campus operations has never been this seamless.
+      </p>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         <ModuleCard title="Facilities" description="Monitor room status, manage assets and track equipment in real-time." color="from-teal-400 to-emerald-500" icon="🏢" />
@@ -65,3 +94,4 @@ function ModuleCard({ title, description, color, icon }) {
     </div>
   );
 }
+
