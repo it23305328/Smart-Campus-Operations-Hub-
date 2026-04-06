@@ -2,12 +2,15 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
+<<<<<<< HEAD
 import RegisterPage from './pages/RegisterPage';
 import LandingPage from './pages/LandingPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
 import AdminDashboard from './pages/AdminDashboard';
 import Unauthorized from './pages/Unauthorized';
+=======
+>>>>>>> 7f3907bf64a4c1b587692adcc08578fd19d8c4a3
 
 const PrivateRoute = ({ children }) => {
     const { user, loading } = useAuth();
@@ -25,6 +28,7 @@ export default function App() {
   );
 }
 
+<<<<<<< HEAD
 
 function AppContent() {
   const { user } = useAuth();
@@ -74,6 +78,41 @@ function DashboardLayout({ children }) {
         <div className="absolute inset-0 bg-grid-slate-200 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] bg-[length:20px_20px]"></div>
         <div className="max-w-7xl mx-auto p-8 relative z-10">
           {children}
+=======
+function AppContent() {
+  const { user, logout } = useAuth();
+
+  return (
+    <div className="min-h-screen flex flex-col font-sans">
+      <header className="bg-gradient-to-r from-blue-700 to-indigo-800 text-white p-6 shadow-xl relative z-10">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <h1 className="text-3xl font-extrabold tracking-tight">
+            Smart Campus <span className="text-blue-300 font-light">Hub</span>
+          </h1>
+          <nav className="hidden md:flex space-x-6 text-sm font-medium items-center">
+            {user && (
+              <>
+                <span className="text-blue-200">Welcome, {user.name} ({user.role})</span>
+                <a href="/" className="hover:text-blue-300 transition">Dashboard</a>
+                <button onClick={logout} className="bg-red-500 hover:bg-red-600 px-3 py-1 rounded transition">Logout</button>
+              </>
+            )}
+          </nav>
+        </div>
+      </header>
+      <main className="flex-grow bg-slate-50 relative">
+        <div className="absolute inset-0 bg-grid-slate-200 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] bg-[length:20px_20px]"></div>
+        <div className="max-w-7xl mx-auto p-8 relative z-10">
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/loginSuccess" element={<Navigate to="/" />} />
+            <Route path="/" element={
+              <PrivateRoute>
+                <Home />
+              </PrivateRoute>
+            } />
+          </Routes>
+>>>>>>> 7f3907bf64a4c1b587692adcc08578fd19d8c4a3
         </div>
       </main>
     </div>

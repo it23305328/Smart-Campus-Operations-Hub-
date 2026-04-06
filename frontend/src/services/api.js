@@ -1,7 +1,11 @@
 import axios from 'axios';
 
 const api = axios.create({
+<<<<<<< HEAD
     baseURL: 'http://localhost:8083',
+=======
+    baseURL: 'http://localhost:8080',
+>>>>>>> 7f3907bf64a4c1b587692adcc08578fd19d8c4a3
     withCredentials: true, // Crucial for session-based OAuth2
 });
 
