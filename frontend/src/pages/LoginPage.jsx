@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
@@ -8,7 +7,6 @@ const LoginPage = () => {
     const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-
     const [error, setError] = useState(null);
 
     const handleSubmit = async (e) => {
@@ -17,6 +15,8 @@ const LoginPage = () => {
         const success = await login(email, password);
         if (!success) {
             setError('Invalid email or password');
+        } else {
+            navigate('/dashboard');
         }
     };
 
@@ -24,20 +24,20 @@ const LoginPage = () => {
         <div className="min-h-screen flex items-center justify-center bg-slate-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
             <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-2xl shadow-xl shadow-slate-200">
                 <div>
-                    <h2 className="mt-2 text-center text-3xl font-extrabold text-slate-900 tracking-tight">
-                        Welcome back
-                    </h2>
+                    <h1 className="mt-2 text-center text-3xl font-extrabold text-slate-900 tracking-tight">
+                        Smart Campus <span className="text-blue-600">Hub</span>
+                    </h1>
                     <p className="mt-2 text-center text-sm text-slate-500">
-                        Sign in to your Smart Campus Operations Hub account
+                        Secure Login for Campus Management
                     </p>
                 </div>
-                
+
                 {error && (
                     <div className="bg-red-50 text-red-500 p-3 rounded-lg text-sm text-center">
                         {error}
                     </div>
                 )}
-                
+
                 <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
                     <div className="space-y-4 rounded-md shadow-sm">
                         <div>
@@ -140,44 +140,13 @@ const LoginPage = () => {
                         </button>
                     </div>
                 </div>
-                
+
                 <p className="mt-8 text-center text-sm text-slate-600">
                     Don't have an account?{' '}
                     <Link to="/register" className="font-bold text-blue-600 hover:text-blue-500 transition-colors">
                         Register now
                     </Link>
                 </p>
-=======
-import React from 'react';
-import { useAuth } from '../context/AuthContext';
-
-const LoginPage = () => {
-    const { login } = useAuth();
-
-    return (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', backgroundColor: '#f0f2f5' }}>
-            <div style={{ padding: '40px', backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', textAlign: 'center' }}>
-                <h1 style={{ color: '#333' }}>Smart Campus Operations Hub</h1>
-                <p style={{ marginBottom: '24px', color: '#666' }}>Secure Login for Campus Management</p>
-                <button 
-                    onClick={login}
-                    style={{ 
-                        padding: '12px 24px', 
-                        fontSize: '16px', 
-                        backgroundColor: '#4285F4', 
-                        color: 'white', 
-                        border: 'none', 
-                        borderRadius: '4px', 
-                        cursor: 'pointer',
-                        fontWeight: 'bold',
-                        transition: 'background-color 0.3s'
-                    }}
-                    onMouseOver={(e) => e.target.style.backgroundColor = '#357ae8'}
-                    onMouseOut={(e) => e.target.style.backgroundColor = '#4285F4'}
-                >
-                    Login with Google
-                </button>
->>>>>>> 7f3907bf64a4c1b587692adcc08578fd19d8c4a3
             </div>
         </div>
     );
