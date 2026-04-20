@@ -11,6 +11,9 @@ import Unauthorized from './pages/Unauthorized';
 import ResourceCatalogue from './pages/facilities/ResourceCatalogue';
 import AdminResourceManagement from './pages/facilities/AdminResourceManagement';
 import AnalyticsDashboard from './pages/facilities/AnalyticsDashboard';
+import TechnicianDashboard from './pages/incidents/TechnicianDashboard';
+import TicketDetails from './pages/incidents/TicketDetails';
+import TicketForm from './pages/incidents/TicketForm';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -78,6 +81,18 @@ function AppContent() {
               </ProtectedRoute>
             } />
 
+            <Route path="/incidents" element={
+              <PrivateRoute>
+                <TechnicianDashboard />
+              </PrivateRoute>
+            } />
+
+            <Route path="/incidents/:id" element={
+              <PrivateRoute>
+                <TicketDetails />
+              </PrivateRoute>
+            } />
+
             {/* Generic Placeholders */}
             <Route path="/bookings" element={<ProtectedRoute roles={['USER']}> <div>Bookings View Placeholder</div> </ProtectedRoute>} />
             <Route path="/incidents" element={<ProtectedRoute roles={['USER']}> <div>Incidents View Placeholder</div> </ProtectedRoute>} />
@@ -127,6 +142,9 @@ function Home() {
                 </button>
                 <button onClick={() => window.location.href = '/admin/analytics'} className="bg-fuchsia-600 hover:bg-fuchsia-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-fuchsia-100 transition-all">
                     Usage Analytics
+                </button>
+                <button onClick={() => window.location.href = '/incidents'} className="bg-rose-600 hover:bg-rose-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-rose-100 transition-all">
+                    Manage Tickets
                 </button>
                 <button onClick={() => window.location.href = '/admin/users'} className="bg-slate-800 hover:bg-slate-900 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-slate-100 transition-all">
                     Manage Users
