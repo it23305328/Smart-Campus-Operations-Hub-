@@ -5,7 +5,11 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255), -- for local/testing if needed
     role ENUM('USER', 'ADMIN', 'TECHNICIAN') DEFAULT 'USER',
-    google_id VARCHAR(255) UNIQUE
+    google_id VARCHAR(255) UNIQUE,
+    status VARCHAR(50) DEFAULT 'ACTIVE',
+    last_login TIMESTAMP,
+    ip_address VARCHAR(100),
+    phone_number VARCHAR(20)
 );
 
 

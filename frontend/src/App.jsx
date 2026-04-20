@@ -14,6 +14,8 @@ import AnalyticsDashboard from './pages/facilities/AnalyticsDashboard';
 import TechnicianDashboard from './pages/incidents/TechnicianDashboard';
 import TicketDetails from './pages/incidents/TicketDetails';
 import TicketForm from './pages/incidents/TicketForm';
+import Sidebar from './components/layout/Sidebar';
+import Profile from './pages/users/Profile';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -35,13 +37,14 @@ function AppContent() {
   const { user } = useAuth();
 
   return (
-    <div className="min-h-screen flex flex-col font-sans">
-      {/* Navbar from Version 1 */}
-      <Navbar />
-
-      <main className="flex-grow bg-slate-50 relative">
-        <div className="absolute inset-0 bg-grid-slate-200 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] bg-[length:20px_20px]"></div>
-        <div className="max-w-7xl mx-auto p-8 relative z-10">
+    <div className="min-h-screen flex font-sans">
+      {user && <Sidebar />}
+      
+      <div className="flex-grow flex flex-col min-w-0 bg-slate-50 relative">
+        <Navbar />
+        <main className="flex-grow relative overflow-y-auto">
+          <div className="absolute inset-0 bg-grid-slate-200 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] bg-[length:20px_20px] pointer-events-none"></div>
+          <div className="max-w-7xl mx-auto p-8 relative z-10">
           <Routes>
             {/* Logic from Version 1 */}
             <Route path="/" element={user ? <Navigate to="/dashboard" /> : <LandingPage />} />
@@ -93,6 +96,12 @@ function AppContent() {
               </PrivateRoute>
             } />
 
+            <Route path="/profile" element={
+              <PrivateRoute>
+                <Profile />
+              </PrivateRoute>
+            } />
+
             {/* Generic Placeholders */}
             <Route path="/bookings" element={<ProtectedRoute roles={['USER']}> <div>Bookings View Placeholder</div> </ProtectedRoute>} />
             <Route path="/incidents" element={<ProtectedRoute roles={['USER']}> <div>Incidents View Placeholder</div> </ProtectedRoute>} />
@@ -103,7 +112,8 @@ function AppContent() {
         </div>
       </main>
     </div>
-  );
+  </div>
+);
 }
 
 function Home() {

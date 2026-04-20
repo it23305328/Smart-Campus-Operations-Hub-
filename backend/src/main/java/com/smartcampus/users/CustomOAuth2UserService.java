@@ -11,11 +11,16 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
+
+    @Autowired
+    private HttpServletRequest request;
 
     public CustomOAuth2UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
@@ -35,11 +40,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         if (userOptional.isPresent()) {
             user = userOptional.get();
-            // Update optional details
-            if (user.getGoogleId() == null) {
-                user.setGoogleId(googleId);
-                userRepository.save(user);
-            }
         } else {
             // Register new user with default role USER
             user = User.builder()
@@ -47,11 +47,17 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     .name(name)
                     .googleId(googleId)
                     .role(Role.USER) // Default role
+                    .status(UserStatus.ACTIVE)
                     .build();
-            userRepository.save(user);
         }
 
-        System.out.println(">>> User logged in: " + email + " | Role: " + user.getRole());
+        // Update Audit Info and Ensure Fields (Member 4)
+        if (user.getGoogleId() == null) user.setGoogleId(googleId);
+        user.setLastLogin(java.time.LocalDateTime.now());
+        user.setIpAddress(request.getRemoteAddr());
+        userRepository.save(user);
+
+        System.out.println(">>> User logged in: " + email + " | Role: " + user.getRole() + " | IP: " + user.getIpAddress());
 
         // Return a DefaultOAuth2User with our internal role mapped to Spring Security GrantedAuthority
         return new DefaultOAuth2User(

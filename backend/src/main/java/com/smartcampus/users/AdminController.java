@@ -38,6 +38,20 @@ public class AdminController {
         }).orElse(ResponseEntity.notFound().build());
     }
 
+    @PutMapping("/users/{id}/status")
+    public ResponseEntity<?> updateUserStatus(@PathVariable Long id, @RequestBody Map<String, String> request) {
+        return userRepository.findById(id).map(user -> {
+            try {
+                UserStatus newStatus = UserStatus.valueOf(request.get("status").toUpperCase());
+                user.setStatus(newStatus);
+                userRepository.save(user);
+                return ResponseEntity.ok().body(Map.of("message", "User status updated successfully", "user", user));
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Invalid status"));
+            }
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
     @DeleteMapping("/users/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
         return userRepository.findById(id).map(user -> {

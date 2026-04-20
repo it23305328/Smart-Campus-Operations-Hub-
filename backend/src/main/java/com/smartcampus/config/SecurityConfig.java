@@ -19,9 +19,11 @@ import java.util.Arrays;
 public class SecurityConfig {
 
     private final CustomOAuth2UserService customOAuth2UserService;
+    private final UserStatusFilter userStatusFilter;
 
-    public SecurityConfig(CustomOAuth2UserService customOAuth2UserService) {
+    public SecurityConfig(CustomOAuth2UserService customOAuth2UserService, UserStatusFilter userStatusFilter) {
         this.customOAuth2UserService = customOAuth2UserService;
+        this.userStatusFilter = userStatusFilter;
     }
 
     @Bean
@@ -43,6 +45,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/analytics/**").hasAnyRole("ADMIN", "USER")
                 .anyRequest().authenticated()
             )
+            .addFilterBefore(userStatusFilter, org.springframework.security.web.access.intercept.AuthorizationFilter.class)
             .oauth2Login(oauth2 -> oauth2
                 .userInfoEndpoint(userInfo -> userInfo
                         .userService(customOAuth2UserService)
