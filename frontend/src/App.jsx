@@ -10,6 +10,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import Unauthorized from './pages/Unauthorized';
 import ResourceCatalogue from './pages/facilities/ResourceCatalogue';
 import AdminResourceManagement from './pages/facilities/AdminResourceManagement';
+import AnalyticsDashboard from './pages/facilities/AnalyticsDashboard';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -71,6 +72,12 @@ function AppContent() {
               </ProtectedRoute>
             } />
 
+            <Route path="/admin/analytics" element={
+              <ProtectedRoute roles={['ADMIN']}>
+                <AnalyticsDashboard />
+              </ProtectedRoute>
+            } />
+
             {/* Generic Placeholders */}
             <Route path="/bookings" element={<ProtectedRoute roles={['USER']}> <div>Bookings View Placeholder</div> </ProtectedRoute>} />
             <Route path="/incidents" element={<ProtectedRoute roles={['USER']}> <div>Incidents View Placeholder</div> </ProtectedRoute>} />
@@ -117,6 +124,9 @@ function Home() {
             <div className="flex flex-wrap justify-center gap-4">
                 <button onClick={() => window.location.href = '/admin/facilities'} className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-indigo-100 transition-all">
                     Manage Facilities
+                </button>
+                <button onClick={() => window.location.href = '/admin/analytics'} className="bg-fuchsia-600 hover:bg-fuchsia-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-fuchsia-100 transition-all">
+                    Usage Analytics
                 </button>
                 <button onClick={() => window.location.href = '/admin/users'} className="bg-slate-800 hover:bg-slate-900 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-slate-100 transition-all">
                     Manage Users

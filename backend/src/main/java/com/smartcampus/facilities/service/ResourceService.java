@@ -53,4 +53,16 @@ public class ResourceService {
     public Optional<Resource> getResourceById(Long id) {
         return resourceRepository.findById(id);
     }
+
+    public List<com.smartcampus.facilities.dto.TopResourceDTO> getTopResources() {
+        return resourceRepository.findTopResources();
+    }
+
+    public java.util.Map<String, Long> getSummaryMetrics() {
+        java.util.Map<String, Long> metrics = new java.util.HashMap<>();
+        metrics.put("totalResources", resourceRepository.count());
+        metrics.put("activeResources", resourceRepository.countByStatus(Resource.ResourceStatus.ACTIVE));
+        metrics.put("outOfServiceResources", resourceRepository.countByStatus(Resource.ResourceStatus.OUT_OF_SERVICE));
+        return metrics;
+    }
 }

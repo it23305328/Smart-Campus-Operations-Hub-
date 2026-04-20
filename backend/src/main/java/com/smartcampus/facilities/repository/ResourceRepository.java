@@ -22,4 +22,13 @@ public interface ResourceRepository extends JpaRepository<Resource, Long> {
             @Param("type") ResourceType type,
             @Param("location") String location,
             @Param("minCapacity") Integer minCapacity);
+
+    @Query("SELECT new com.smartcampus.facilities.dto.TopResourceDTO(r.name, COUNT(b)) " +
+           "FROM Booking b JOIN b.resource r " +
+           "WHERE b.status = 'APPROVED' " +
+           "GROUP BY r.id, r.name " +
+           "ORDER BY COUNT(b) DESC")
+    List<com.smartcampus.facilities.dto.TopResourceDTO> findTopResources();
+    
+    long countByStatus(com.smartcampus.facilities.model.Resource.ResourceStatus status);
 }

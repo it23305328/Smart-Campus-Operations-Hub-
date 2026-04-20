@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
     google_id VARCHAR(255) UNIQUE
 );
 
+
 -- Member 1: Facilities Table
 CREATE TABLE IF NOT EXISTS resources (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -17,4 +18,15 @@ CREATE TABLE IF NOT EXISTS resources (
     location VARCHAR(255),
     status VARCHAR(50) DEFAULT 'ACTIVE', -- ACTIVE, OUT_OF_SERVICE
     availability_windows TEXT -- වැඩ කරන වේලාවන් (JSON string එකක් විදිහට)
+);
+
+-- Basic Bookings table for Analytics Innovation
+CREATE TABLE IF NOT EXISTS bookings (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    resource_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    status VARCHAR(50) DEFAULT 'PENDING', -- PENDING, APPROVED, CANCELLED
+    booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (resource_id) REFERENCES resources(id),
+    FOREIGN KEY (user_id) REFERENCES users(id)
 );
