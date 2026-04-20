@@ -1,8 +1,8 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
-    LayoutDashboard, Users, Map, 
-    Calendar, TrendingUp, Bell, 
+    Home, Users, Map, 
+    Calendar, BarChart, Bell, 
     User, AlertTriangle, ClipboardList,
     LogOut
 } from 'lucide-react';
@@ -14,23 +14,23 @@ const Sidebar = () => {
 
     const menuItems = {
         ADMIN: [
-            { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
+            { icon: Home, label: 'Dashboard', path: '/' },
             { icon: Users, label: 'User Management', path: '/admin/users' },
             { icon: Map, label: 'Facilities', path: '/admin/facilities' },
             { icon: Calendar, label: 'All Bookings', path: '/bookings' },
-            { icon: TrendingUp, label: 'Analytics', path: '/admin/analytics' },
+            { icon: BarChart, label: 'Analytics', path: '/admin/analytics' },
             { icon: Bell, label: 'Notifications', path: '/notifications' },
             { icon: User, label: 'Profile', path: '/profile' },
         ],
         USER: [
-            { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
+            { icon: Home, label: 'Dashboard', path: '/' },
             { icon: Calendar, label: 'My Bookings', path: '/bookings' },
             { icon: AlertTriangle, label: 'Report Incident', path: '/incidents' },
             { icon: Map, label: 'Catalogue', path: '/catalogue' },
             { icon: User, label: 'Profile', path: '/profile' },
         ],
         TECHNICIAN: [
-            { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
+            { icon: Home, label: 'Dashboard', path: '/' },
             { icon: ClipboardList, label: 'Assigned Incidents', path: '/incidents' },
             { icon: User, label: 'Profile', path: '/profile' },
         ]
@@ -43,7 +43,7 @@ const Sidebar = () => {
             <div className="p-10">
                 <div className="flex items-center gap-4 mb-10">
                     <div className="w-12 h-12 bg-indigo-500 rounded-2xl rotate-3 flex items-center justify-center shadow-lg shadow-indigo-500/50">
-                        <LayoutDashboard className="w-6 h-6 text-white" />
+                        <Home className="w-6 h-6 text-white" />
                     </div>
                     <div>
                         <h2 className="text-xl font-black tracking-tighter">SMART CAMPUS</h2>
