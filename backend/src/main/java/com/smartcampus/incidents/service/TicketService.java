@@ -88,6 +88,7 @@ public class TicketService {
             ticket.setRejectionReason(notes);
         } else if (newStatus == TicketStatus.RESOLVED) {
             ticket.setResolutionNotes(notes);
+            ticket.setResolvedAt(java.time.LocalDateTime.now());
         }
 
         return ticketRepository.save(ticket);

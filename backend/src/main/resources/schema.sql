@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS tickets (
     rejection_reason TEXT,
     technician_id BIGINT, -- Assigned technician 
     resolution_notes TEXT,
+    resolved_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (resource_id) REFERENCES resources(id),
     FOREIGN KEY (reporter_id) REFERENCES users(id)

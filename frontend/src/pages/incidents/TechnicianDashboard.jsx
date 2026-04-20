@@ -7,6 +7,7 @@ import {
 import ticketService from '../../services/ticketService';
 import { useAuth } from '../../context/AuthContext';
 import TicketForm from './TicketForm';
+import TicketTimer from '../../components/incidents/TicketTimer';
 
 const TechnicianDashboard = () => {
     const { user } = useAuth();
@@ -128,13 +129,18 @@ const TechnicianDashboard = () => {
                                                 </span>
                                             </td>
                                             <td className="px-8 py-6">
-                                                <div className="flex items-center gap-2">
-                                                    <div className={`w-2 h-2 rounded-full ${
-                                                        ticket.status === 'OPEN' ? 'bg-blue-500' : 
-                                                        ticket.status === 'IN_PROGRESS' ? 'bg-amber-500' :
-                                                        ticket.status === 'RESOLVED' ? 'bg-emerald-500' : 'bg-slate-400'
-                                                    }`}></div>
-                                                    <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">{ticket.status.replace('_', ' ')}</span>
+                                                <div className="flex flex-col gap-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className={`w-2 h-2 rounded-full ${
+                                                            ticket.status === 'OPEN' ? 'bg-blue-500' : 
+                                                            ticket.status === 'IN_PROGRESS' ? 'bg-amber-500' :
+                                                            ticket.status === 'RESOLVED' ? 'bg-emerald-500' : 'bg-slate-400'
+                                                        }`}></div>
+                                                        <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">{ticket.status.replace('_', ' ')}</span>
+                                                    </div>
+                                                    <div className="transform scale-75 origin-left">
+                                                        <TicketTimer createdAt={ticket.createdAt} resolvedAt={ticket.resolvedAt} />
+                                                    </div>
                                                 </div>
                                             </td>
                                             <td className="px-8 py-6 text-right">

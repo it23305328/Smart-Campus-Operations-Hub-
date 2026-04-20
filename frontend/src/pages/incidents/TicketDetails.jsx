@@ -8,6 +8,7 @@ import {
 import ticketService from '../../services/ticketService';
 import { useAuth } from '../../context/AuthContext';
 import CommentSection from '../../components/incidents/CommentSection';
+import TicketTimer from '../../components/incidents/TicketTimer';
 
 const TicketDetails = () => {
     const { id } = useParams();
@@ -84,9 +85,12 @@ const TicketDetails = () => {
                     <div className="lg:col-span-2 space-y-8">
                         <div className="bg-white rounded-[2.5rem] p-10 shadow-2xl shadow-slate-200/50 border border-slate-100">
                             <div className="flex justify-between items-start mb-8">
-                                <span className={`px-4 py-1.5 rounded-full text-xs font-black tracking-widest uppercase ${getStatusColor(ticket.status)}`}>
-                                    {ticket.status}
-                                </span>
+                                <div className="flex flex-col gap-2">
+                                    <span className={`w-fit px-4 py-1.5 rounded-full text-xs font-black tracking-widest uppercase ${getStatusColor(ticket.status)}`}>
+                                        {ticket.status}
+                                    </span>
+                                    <TicketTimer createdAt={ticket.createdAt} resolvedAt={ticket.resolvedAt} />
+                                </div>
                                 <span className="text-sm font-bold text-slate-400 flex items-center gap-2">
                                     <Clock className="w-4 h-4" />
                                     {new Date(ticket.createdAt).toLocaleString()}
