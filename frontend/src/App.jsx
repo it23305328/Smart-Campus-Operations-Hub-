@@ -8,6 +8,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
 import AdminDashboard from './pages/AdminDashboard';
 import Unauthorized from './pages/Unauthorized';
+import ResourceCatalogue from './pages/facilities/ResourceCatalogue';
+import AdminResourceManagement from './pages/facilities/AdminResourceManagement';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -57,6 +59,18 @@ function AppContent() {
               </ProtectedRoute>
             } />
 
+            <Route path="/facilities" element={
+              <PrivateRoute>
+                <ResourceCatalogue />
+              </PrivateRoute>
+            } />
+
+            <Route path="/admin/facilities" element={
+              <ProtectedRoute roles={['ADMIN']}>
+                <AdminResourceManagement />
+              </ProtectedRoute>
+            } />
+
             {/* Generic Placeholders */}
             <Route path="/bookings" element={<ProtectedRoute roles={['USER']}> <div>Bookings View Placeholder</div> </ProtectedRoute>} />
             <Route path="/incidents" element={<ProtectedRoute roles={['USER']}> <div>Incidents View Placeholder</div> </ProtectedRoute>} />
@@ -72,6 +86,8 @@ function AppContent() {
 
 function Home() {
   const { user } = useAuth();
+  const navigate = React.useMemo(() => (path) => window.location.pathname = path, []); // Basic navigation for non-router context if needed, but we are inside Router
+
   return (
     <div className="text-center py-10">
       <h2 className="text-4xl font-black text-slate-800 mb-6 drop-shadow-sm">Welcome to your Operations Dashboard</h2>
@@ -81,11 +97,33 @@ function Home() {
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-        <ModuleCard title="Facilities" description="Monitor room status, manage assets and track equipment." color="from-teal-400 to-emerald-500" icon="🏢" />
-        <ModuleCard title="Bookings" description="Handle schedule requests and approve venue reservations." color="from-sky-400 to-blue-500" icon="📅" />
-        <ModuleCard title="Incidents" description="Review reported faults and assign field staff." color="from-rose-400 to-red-500" icon="🚨" />
-        <ModuleCard title="Notifications" description="Broadcast alerts and manage subscriber preferences." color="from-amber-400 to-orange-500" icon="🔔" />
+        <div onClick={() => window.location.href = '/facilities'}>
+          <ModuleCard title="Facilities" description="Monitor room status, manage assets and track equipment." color="from-teal-400 to-emerald-500" icon="🏢" />
+        </div>
+        <div onClick={() => window.location.href = '/bookings'}>
+          <ModuleCard title="Bookings" description="Handle schedule requests and approve venue reservations." color="from-sky-400 to-blue-500" icon="📅" />
+        </div>
+        <div onClick={() => window.location.href = '/incidents'}>
+          <ModuleCard title="Incidents" description="Review reported faults and assign field staff." color="from-rose-400 to-red-500" icon="🚨" />
+        </div>
+        <div onClick={() => window.location.href = '/notifications'}>
+          <ModuleCard title="Notifications" description="Broadcast alerts and manage subscriber preferences." color="from-amber-400 to-orange-500" icon="🔔" />
+        </div>
       </div>
+
+      {user?.role === 'ADMIN' && (
+        <div className="mt-16 border-t border-slate-200 pt-10">
+            <h3 className="text-2xl font-bold text-slate-800 mb-6">Administrative Control</h3>
+            <div className="flex flex-wrap justify-center gap-4">
+                <button onClick={() => window.location.href = '/admin/facilities'} className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-indigo-100 transition-all">
+                    Manage Facilities
+                </button>
+                <button onClick={() => window.location.href = '/admin/users'} className="bg-slate-800 hover:bg-slate-900 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-slate-100 transition-all">
+                    Manage Users
+                </button>
+            </div>
+        </div>
+      )}
     </div>
   );
 }
