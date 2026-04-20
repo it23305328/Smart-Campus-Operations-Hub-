@@ -51,6 +51,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             userRepository.save(user);
         }
 
+        System.out.println(">>> User logged in: " + email + " | Role: " + user.getRole());
+
         // Return a DefaultOAuth2User with our internal role mapped to Spring Security GrantedAuthority
         return new DefaultOAuth2User(
                 Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole().name())),
