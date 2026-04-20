@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
     Clock, Shield, User, MapPin, 
-    CheckCircle2, XCircle, PlayCircle, DoneAll,
+    CheckCircle2, XCircle, PlayCircle, Check,
     ChevronRight, ArrowLeft, Image as ImageIcon
 } from 'lucide-react';
 import ticketService from '../../services/ticketService';
@@ -193,7 +193,7 @@ const TicketDetails = () => {
 
                                     {(ticket.status === 'RESOLVED' && (isAdmin || isOwner)) && (
                                         <button onClick={() => handleStatusUpdate('CLOSED')} className="flex items-center justify-center gap-2 bg-slate-900 text-white py-4 rounded-2xl font-bold hover:bg-black transition-all">
-                                            <DoneAll className="w-5 h-5" /> Close Ticket
+                                            <Check className="w-5 h-5" /> Close Ticket
                                         </button>
                                     )}
                                 </div>
