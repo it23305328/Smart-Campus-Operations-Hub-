@@ -7,3 +7,14 @@ CREATE TABLE IF NOT EXISTS users (
     role ENUM('USER', 'ADMIN', 'TECHNICIAN') DEFAULT 'USER',
     google_id VARCHAR(255) UNIQUE
 );
+
+-- Member 1: Facilities Table
+CREATE TABLE IF NOT EXISTS resources (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    type VARCHAR(50) NOT NULL, -- LECTURE_HALL, LAB, MEETING_ROOM, EQUIPMENT
+    capacity INT,
+    location VARCHAR(255),
+    status VARCHAR(50) DEFAULT 'ACTIVE', -- ACTIVE, OUT_OF_SERVICE
+    availability_windows TEXT -- වැඩ කරන වේලාවන් (JSON string එකක් විදිහට)
+);
