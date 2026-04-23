@@ -27,20 +27,22 @@ public class UserController {
             return ResponseEntity.status(401).body("Not authenticated");
         }
 
-        Object principal = authentication.getPrincipal();
-
-        if (principal instanceof User) {
-            return ResponseEntity.ok((User) principal);
-        }
-
-        if (principal instanceof OAuth2User) {
-            OAuth2User oauth2User = (OAuth2User) principal;
-            String email = oauth2User.getAttribute("email");
-            return userRepository.findByEmail(email)
-                    .map(user -> ResponseEntity.ok((Object) user))
-                    .orElse(ResponseEntity.ok(oauth2User.getAttributes()));
-        }
-
-        return ResponseEntity.ok(principal);
+        // Standard authentication stores the email as the name, OAuth2 stores it in attributes
+        String email = authentication.getName();
+        
+        // Try to fetch from DB to ensure we have the full entity with correct role
+        return userRepository.findByEmail(email)
+                .map(user -> {
+                    // Password should never be sent to the frontend
+                    user.setPassword(null);
+                    return ResponseEntity.ok((Object) user);
+                })
+                .orElseGet(() -> {
+                    // Fallback for cases where DB record might not exist yet (OAuth2 edge cases)
+                    if (authentication.getPrincipal() instanceof OAuth2User) {
+                        return ResponseEntity.ok(((OAuth2User) authentication.getPrincipal()).getAttributes());
+                    }
+                    return ResponseEntity.status(404).body("User record not found");
+                });
     }
 }

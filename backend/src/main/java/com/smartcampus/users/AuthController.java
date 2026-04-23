@@ -6,9 +6,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Collections;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -38,7 +41,11 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody User loginRequest, HttpServletRequest request, HttpServletResponse response) {
         User user = userRepository.findByEmail(loginRequest.getEmail()).orElse(null);
         if (user != null && passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
-            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(user, null, null);
+            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                    user.getEmail(), 
+                    null, 
+                    Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
+            );
             SecurityContextHolder.getContext().setAuthentication(auth);
             securityContextRepository.saveContext(SecurityContextHolder.getContext(), request, response);
             return ResponseEntity.ok(user);
