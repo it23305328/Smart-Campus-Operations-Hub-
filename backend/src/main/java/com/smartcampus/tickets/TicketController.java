@@ -28,14 +28,16 @@ public class TicketController {
             @RequestParam("category") String category,
             @RequestParam("priority") String priority,
             @RequestParam("contactDetails") String contactDetails,
+            @RequestParam("createdBy") String createdBy,
             @RequestParam(value = "images", required = false) MultipartFile[] images) {
         
         if (title == null || title.isBlank() || 
             description == null || description.isBlank() ||
             category == null || category.isBlank() ||
             priority == null || priority.isBlank() ||
-            contactDetails == null || contactDetails.isBlank()) {
-            return ResponseEntity.badRequest().body("All fields (title, category, priority, contact, description) are mandatory.");
+            contactDetails == null || contactDetails.isBlank() ||
+            createdBy == null || createdBy.isBlank()) {
+            return ResponseEntity.badRequest().body("All fields (title, category, priority, contact, description, createdBy) are mandatory.");
         }
 
         Ticket ticket = new Ticket();
@@ -44,6 +46,7 @@ public class TicketController {
         ticket.setCategory(category);
         ticket.setPriority(priority);
         ticket.setContactDetails(contactDetails);
+        ticket.setCreatedBy(createdBy);
         ticket.setStatus(TicketStatus.OPEN);
 
         if (images != null && images.length > 0) {

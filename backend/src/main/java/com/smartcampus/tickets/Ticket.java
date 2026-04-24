@@ -24,6 +24,7 @@ public class Ticket {
 
     private String rejectionReason;
     private String resolutionNotes;
+    private String createdBy;
 
     @ElementCollection
     private List<String> imageUrls;

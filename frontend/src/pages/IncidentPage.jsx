@@ -6,9 +6,11 @@ import {
     FaChevronRight, FaImages
 } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const IncidentPage = () => {
     const { user: currentUser } = useAuth();
+    const navigate = useNavigate();
     const [tickets, setTickets] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedTicket, setSelectedTicket] = useState(null);
@@ -140,14 +142,30 @@ const IncidentPage = () => {
                     </h1>
                     <p className="text-slate-500 mt-1 font-medium">Manage campus incidents and resource health.</p>
                 </div>
-                <div className="bg-white px-6 py-3 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-6">
-                    <div className="text-center border-r border-slate-100 pr-6">
-                        <div className="text-2xl font-black text-rose-500">{tickets.filter(t => t.status === 'OPEN').length}</div>
-                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Open</div>
-                    </div>
-                    <div className="text-center">
-                        <div className="text-2xl font-black text-blue-600">{tickets.length}</div>
-                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total</div>
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                    {currentUser?.role === 'USER' && (
+                        <button 
+                            onClick={() => navigate('/create-ticket')}
+                            className="bg-blue-600 text-white px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-blue-600/20 hover:bg-blue-700 transition-all hover:-translate-y-0.5 active:translate-y-0"
+                        >
+                            Report New Incident
+                        </button>
+                    )}
+                    <div className="bg-white px-6 py-3 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-6">
+                        <div className="text-center border-r border-slate-100 pr-6">
+                            <div className="text-2xl font-black text-rose-500">
+                                {tickets.filter(t => t.status === 'OPEN' && (currentUser?.role !== 'USER' || t.createdBy === currentUser.name)).length}
+                            </div>
+                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Open</div>
+                        </div>
+                        <div className="text-center">
+                            <div className="text-2xl font-black text-blue-600">
+                                {currentUser?.role === 'USER' ? tickets.filter(t => t.createdBy === currentUser.name).length : tickets.length}
+                            </div>
+                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                {currentUser?.role === 'USER' ? 'My Reports' : 'Total'}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -155,7 +173,9 @@ const IncidentPage = () => {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 {/* Tickets List */}
                 <div className={`${selectedTicket ? 'lg:col-span-5' : 'lg:col-span-12'} space-y-4 transition-all duration-300`}>
-                    {tickets.map((t) => (
+                    {tickets
+                        .filter(t => currentUser?.role !== 'USER' || t.createdBy === currentUser.name || t.createdBy === currentUser.email)
+                        .map((t) => (
                         <div 
                             key={t.id}
                             onClick={() => setSelectedTicket(t)}
@@ -210,6 +230,13 @@ const IncidentPage = () => {
                                     >×</button>
                                 </div>
 
+                                <div className="flex flex-wrap gap-4 mb-4">
+                                    <div className="bg-blue-100 px-4 py-2 rounded-2xl flex items-center gap-2">
+                                        <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Reported By:</span>
+                                        <span className="text-xs font-black text-blue-700">{selectedTicket.createdBy || 'Unknown'}</span>
+                                    </div>
+                                </div>
+
                                 <div className="flex flex-wrap gap-4 mb-8">
                                     <div className="bg-slate-100 px-4 py-2 rounded-2xl flex items-center gap-2">
                                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Category:</span>
@@ -228,40 +255,42 @@ const IncidentPage = () => {
                                 </div>
 
                                 <div className="space-y-10">
-                                    {/* Status & Assignment Controls */}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
-                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Update Progress</label>
-                                            <div className="flex flex-wrap gap-2">
-                                                {['OPEN', 'IN_PROGRESS', 'RESOLVED', 'REJECTED', 'CLOSED'].map(s => (
-                                                    <button
-                                                        key={s}
-                                                        onClick={() => handleUpdateStatus(selectedTicket.id, s)}
-                                                        className={`px-3 py-1.5 rounded-xl text-[10px] font-black transition-all border
-                                                            ${selectedTicket.status === s 
-                                                                ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-200' 
-                                                                : 'bg-white border-slate-200 text-slate-500 hover:border-blue-400'}`}
-                                                    >
-                                                        {s}
-                                                    </button>
-                                                ))}
+                                    {/* Status & Assignment Controls - HIDDEN FOR USERS */}
+                                    {currentUser?.role !== 'USER' && (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Update Progress</label>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {['OPEN', 'IN_PROGRESS', 'RESOLVED', 'REJECTED', 'CLOSED'].map(s => (
+                                                        <button
+                                                            key={s}
+                                                            onClick={() => handleUpdateStatus(selectedTicket.id, s)}
+                                                            className={`px-3 py-1.5 rounded-xl text-[10px] font-black transition-all border
+                                                                ${selectedTicket.status === s 
+                                                                    ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-200' 
+                                                                    : 'bg-white border-slate-200 text-slate-500 hover:border-blue-400'}`}
+                                                        >
+                                                            {s}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Assign Professional</label>
+                                                <select 
+                                                    className="w-full bg-white border-2 border-slate-200 rounded-2xl p-3 text-sm font-bold text-slate-700 outline-none focus:border-blue-500 transition-all"
+                                                    value={selectedTicket.assignedTechnician || ""}
+                                                    onChange={(e) => handleAssign(selectedTicket.id, e.target.value)}
+                                                >
+                                                    <option value="">Choose Technician...</option>
+                                                    {technicians.map(tech => (
+                                                        <option key={tech.id} value={tech.name}>{tech.name}</option>
+                                                    ))}
+                                                </select>
                                             </div>
                                         </div>
-
-                                        <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
-                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Assign Professional</label>
-                                            <select 
-                                                className="w-full bg-white border-2 border-slate-200 rounded-2xl p-3 text-sm font-bold text-slate-700 outline-none focus:border-blue-500 transition-all"
-                                                value={selectedTicket.assignedTechnician || ""}
-                                                onChange={(e) => handleAssign(selectedTicket.id, e.target.value)}
-                                            >
-                                                <option value="">Choose Technician...</option>
-                                                {technicians.map(tech => (
-                                                    <option key={tech.id} value={tech.name}>{tech.name}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                    </div>
+                                    )}
 
                                     {/* Images Section */}
                                     {selectedTicket.imageUrls?.length > 0 && (

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import api from '../services/api';
 import { FaTicketAlt, FaUpload, FaChevronLeft } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const CreateTicket = () => {
     const [title, setTitle] = useState('');
@@ -14,6 +15,7 @@ const CreateTicket = () => {
     const [previews, setPreviews] = useState([]);
     const [errors, setErrors] = useState({});
     const navigate = useNavigate();
+    const { user } = useAuth();
 
     const handleFileChange = (e) => {
         const files = Array.from(e.target.files);
@@ -58,6 +60,7 @@ const CreateTicket = () => {
         formData.append('priority', priority);
         formData.append('contactDetails', contact);
         formData.append('description', description);
+        formData.append('createdBy', user?.name || user?.email || 'Anonymous');
         images.forEach((img) => formData.append('images', img));
 
         try {

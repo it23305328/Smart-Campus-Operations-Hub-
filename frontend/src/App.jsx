@@ -58,6 +58,13 @@ function AppContent() {
               </PrivateRoute>
             } />
 
+            {/* Incident Module: User Route (View Own Tickets) */}
+            <Route path="/my-tickets" element={
+              <ProtectedRoute roles={['USER', 'ADMIN', 'TECHNICIAN']}>
+                <IncidentPage />
+              </ProtectedRoute>
+            } />
+
             {/* Incident Module: User Route (Create Ticket) */}
             <Route path="/create-ticket" element={
               <ProtectedRoute roles={['USER', 'ADMIN', 'TECHNICIAN']}>
@@ -128,10 +135,9 @@ function Home() {
             if (user?.role === 'ADMIN') {
               navigate('/admin/incidents');
             } else if (user?.role === 'TECHNICIAN') {
-              // Usually technicians manage tickets. If they want to just CREATE tickets, they can go to /create-ticket
               navigate('/technician/incidents');
             } else {
-              navigate('/create-ticket');
+              navigate('/my-tickets');
             }
           }}
         />
