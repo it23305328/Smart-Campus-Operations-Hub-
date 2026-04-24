@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 
+/**
+ * AdminDashboard: User Management Interface
+ * Allows Admins to fetch a list of all users, update their roles, or delete accounts.
+ */
 const AdminDashboard = () => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -8,121 +12,134 @@ const AdminDashboard = () => {
     const [editingUserId, setEditingUserId] = useState(null);
     const [editRole, setEditRole] = useState("");
 
-    const handleDeleteUser = async (id) => {
-        if (!window.confirm("Are you sure you want to delete this user?")) return;
-        try {
-            await api.delete(`/api/admin/users/${id}`);
-            setUsers(users.filter(user => user.id !== id));
-        } catch (err) {
-            alert(err.response?.data?.message || "Failed to delete user");
-        }
-    };
-
-    const handleRoleChange = async (id, newRole) => {
-        try {
-            await api.put(`/api/admin/users/${id}/role`, { role: newRole });
-            setUsers(users.map(user => user.id === id ? { ...user, role: newRole } : user));
-            setEditingUserId(null);
-        } catch (err) {
-            alert(err.response?.data?.error || "Failed to update role");
-        }
-    };
-
+    // Fetch the list of users from the backend on component mount
     useEffect(() => {
         const fetchUsers = async () => {
             try {
                 const response = await api.get('/api/admin/users');
                 setUsers(response.data);
             } catch (err) {
-                setError(err.response?.data?.message || 'Failed to fetch users. Note: Backend endpoint may not be fully implemented yet.');
-                console.error("Error fetching users:", err);
+                setError(err.response?.data?.message || 'Unauthorized or Server Error. Could not fetch users.');
             } finally {
                 setLoading(false);
             }
         };
-
         fetchUsers();
     }, []);
 
-    if (loading) return <div className="text-center p-12 text-slate-500">Loading users...</div>;
+    /**
+     * Permanent user deletion logic
+     */
+    const handleDeleteUser = async (id) => {
+        if (!window.confirm("Are you sure? This user will be permanently removed from the system.")) return;
+        try {
+            await api.delete(`/api/admin/users/${id}`);
+            // Remove deleted user from local state to update UI instantly
+            setUsers(users.filter(user => user.id !== id));
+        } catch (err) {
+            alert("Failed to delete user. Ensure you have administrative privileges.");
+        }
+    };
+
+    /**
+     * Updates a specific user's system role (e.g., USER to ADMIN)
+     */
+    const handleRoleChange = async (id, newRole) => {
+        try {
+            await api.put(`/api/admin/users/${id}/role`, { role: newRole });
+            // Map through users and update only the modified user in the state
+            setUsers(users.map(u => u.id === id ? { ...u, role: newRole } : u));
+            setEditingUserId(null); // Exit edit mode
+        } catch (err) {
+            alert("Role update failed. Check server logs.");
+        }
+    };
+
+    // Show loading spinner while fetching data
+    if (loading) return <div className="text-center p-20 text-slate-500 font-bold animate-pulse">Initializing Management Console...</div>;
 
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="p-6 border-b border-slate-200 bg-slate-50">
-                <h2 className="text-xl font-bold text-slate-800">User Management</h2>
-                <p className="text-sm text-slate-500 mt-1">View and manage all registered campus users and their system roles.</p>
+        <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+            {/* Dashboard Header */}
+            <div className="p-8 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+                <div>
+                    <h2 className="text-2xl font-black text-slate-800">User Management</h2>
+                    <p className="text-slate-500 text-sm">Assign roles and manage system access levels.</p>
+                </div>
+                <div className="bg-indigo-600 text-white px-5 py-1.5 rounded-full text-xs font-black shadow-lg shadow-indigo-200 uppercase tracking-widest">
+                    {users.length} Active Records
+                </div>
             </div>
-            
+
+            {/* Error Notification */}
             {error && (
-                <div className="p-4 bg-red-50 border-b border-red-100 text-red-600 text-sm">
-                    {error}
+                <div className="m-6 p-4 bg-red-50 text-red-600 rounded-lg border border-red-100 text-sm font-medium">
+                    ⚠️ {error}
                 </div>
             )}
 
+            {/* User Data Table */}
             <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-slate-200">
-                    <thead className="bg-slate-100">
+                    <thead className="bg-slate-50">
                         <tr>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">ID</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Name</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Email</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Role</th>
-                            <th scope="col" className="px-6 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Actions</th>
+                            <th className="px-8 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">User Identity</th>
+                            <th className="px-8 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">Access Level</th>
+                            <th className="px-8 py-4 text-right text-xs font-bold text-slate-400 uppercase tracking-widest">Operations</th>
                         </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-slate-200">
-                        {users.length === 0 && !error ? (
-                            <tr>
-                                <td colSpan="5" className="px-6 py-8 text-center text-sm text-slate-500">
-                                    No users found in the system.
+                    <tbody className="divide-y divide-slate-100">
+                        {users.map((user) => (
+                            <tr key={user.id} className="hover:bg-slate-50/50 transition-colors">
+                                <td className="px-8 py-5">
+                                    <div className="font-bold text-slate-800">{user.name}</div>
+                                    <div className="text-xs text-slate-500 font-mono italic">ID: {user.id} — {user.email}</div>
+                                </td>
+                                <td className="px-8 py-5">
+                                    {editingUserId === user.id ? (
+                                        /* Dropdown shown only during Edit Mode */
+                                        <select
+                                            value={editRole}
+                                            onChange={(e) => setEditRole(e.target.value)}
+                                            className="border-2 border-indigo-500 rounded-md px-2 py-1 text-sm outline-none bg-indigo-50 font-bold"
+                                        >
+                                            <option value="USER">USER</option>
+                                            <option value="ADMIN">ADMIN</option>
+                                            <option value="TECHNICIAN">TECHNICIAN</option>
+                                        </select>
+                                    ) : (
+                                        /* Static Role Badge */
+                                        <span className={`px-3 py-1 text-[10px] font-black rounded-full text-white shadow-sm
+                                            ${user.role === 'ADMIN' ? 'bg-emerald-500' : user.role === 'TECHNICIAN' ? 'bg-amber-500' : 'bg-blue-500'}`}>
+                                            {user.role}
+                                        </span>
+                                    )}
+                                </td>
+                                <td className="px-8 py-5 text-right space-x-4">
+                                    {editingUserId === user.id ? (
+                                        <>
+                                            <button onClick={() => handleRoleChange(user.id, editRole)} className="text-indigo-600 font-black text-sm hover:text-indigo-800 transition-colors">SAVE</button>
+                                            <button onClick={() => setEditingUserId(null)} className="text-slate-400 font-black text-sm hover:text-slate-600 transition-colors">CANCEL</button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <button
+                                                onClick={() => { setEditingUserId(user.id); setEditRole(user.role); }}
+                                                className="text-indigo-600 font-black text-xs hover:underline decoration-2"
+                                            >
+                                                MODIFY ROLE
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeleteUser(user.id)}
+                                                className="text-red-500 font-black text-xs hover:underline decoration-2"
+                                            >
+                                                DELETE
+                                            </button>
+                                        </>
+                                    )}
                                 </td>
                             </tr>
-                        ) : (
-                            users.map((user) => (
-                                <tr key={user.id} className="hover:bg-slate-50 transition-colors">
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">#{user.id}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm font-medium text-slate-900">{user.name}</div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm text-slate-500">{user.email}</div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        {editingUserId === user.id ? (
-                                            <select 
-                                                value={editRole} 
-                                                onChange={(e) => setEditRole(e.target.value)}
-                                                className="border border-slate-300 rounded px-2 py-1 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
-                                            >
-                                                <option value="USER">USER</option>
-                                                <option value="ADMIN">ADMIN</option>
-                                                <option value="TECHNICIAN">TECHNICIAN</option>
-                                            </select>
-                                        ) : (
-                                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                                ${user.role === 'ADMIN' ? 'bg-emerald-100 text-emerald-800' : 
-                                                  user.role === 'TECHNICIAN' ? 'bg-amber-100 text-amber-800' : 
-                                                  'bg-blue-100 text-blue-800'}`}>
-                                                {user.role}
-                                            </span>
-                                        )}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        {editingUserId === user.id ? (
-                                            <>
-                                                <button onClick={() => handleRoleChange(user.id, editRole)} className="text-emerald-600 hover:text-emerald-900 mr-4">Save</button>
-                                                <button onClick={() => setEditingUserId(null)} className="text-slate-600 hover:text-slate-900">Cancel</button>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <button onClick={() => { setEditingUserId(user.id); setEditRole(user.role); }} className="text-indigo-600 hover:text-indigo-900 mr-4">Edit Role</button>
-                                                <button onClick={() => handleDeleteUser(user.id)} className="text-red-600 hover:text-red-900">Delete</button>
-                                            </>
-                                        )}
-                                    </td>
-                                </tr>
-                            ))
-                        )}
+                        ))}
                     </tbody>
                 </table>
             </div>
