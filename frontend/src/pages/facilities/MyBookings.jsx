@@ -485,7 +485,7 @@ const MyBookings = () => {
                                 : `You don't have any ${filter.toLowerCase()} bookings.`}
                         </p>
                         <button
-                            onClick={() => navigate('/facility')}
+                            onClick={() => navigate('/facilities')}
                             className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 transition-all shadow-lg"
                         >
                             Browse Resources

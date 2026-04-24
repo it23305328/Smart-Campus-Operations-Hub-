@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -24,6 +25,9 @@ public class BookingRequestDTO {
     private Long resourceId;
     
     private String purpose;
+    
+    @NotNull(message = "Reservation date is required")
+    private LocalDate reservationDate;
     
     @NotNull(message = "Start time is required")
     private LocalTime startTime;

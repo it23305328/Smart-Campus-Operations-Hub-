@@ -2,6 +2,7 @@ package com.smartcampus.facilities.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
@@ -17,6 +18,7 @@ public class BookingResponseDTO {
     private String resourceName;
     private String resourceLocation;
     private LocalDateTime bookingDate;
+    private LocalDate reservationDate;
     private LocalTime startTime;
     private LocalTime endTime;
     private String status;

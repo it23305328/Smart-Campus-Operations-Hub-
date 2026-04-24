@@ -26,8 +26,10 @@ const bookingService = {
         return response.data;
     },
 
-    getAvailableSlots: async (resourceId) => {
-        const response = await api.get(`/api/bookings/resource/${resourceId}/availability`);
+    getBookedSlotsForDate: async (resourceId, date) => {
+        const response = await api.get(`/api/bookings/resource/${resourceId}/slots`, {
+            params: { date }
+        });
         return response.data;
     },
 

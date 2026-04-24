@@ -6,11 +6,12 @@ import com.smartcampus.facilities.model.Booking;
 import com.smartcampus.facilities.service.BookingService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalTime;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,16 +52,12 @@ public class BookingController {
         return ResponseEntity.ok(bookings);
     }
 
-    @GetMapping("/resource/{resourceId}/availability")
-    public ResponseEntity<List<Map<String, Object>>> getAvailableSlots(@PathVariable Long resourceId) {
-        List<LocalTime[]> availableSlots = bookingService.getAvailableSlots(resourceId);
-        List<Map<String, Object>> response = availableSlots.stream().map(slot -> {
-            Map<String, Object> slotMap = new HashMap<>();
-            slotMap.put("startTime", slot[0].toString());
-            slotMap.put("endTime", slot[1].toString());
-            return slotMap;
-        }).collect(java.util.stream.Collectors.toList());
-        return ResponseEntity.ok(response);
+    @GetMapping("/resource/{resourceId}/slots")
+    public ResponseEntity<List<BookingResponseDTO>> getBookedSlots(
+            @PathVariable Long resourceId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        List<BookingResponseDTO> slots = bookingService.getBookedSlotsForDate(resourceId, date);
+        return ResponseEntity.ok(slots);
     }
 
     @GetMapping("/check")

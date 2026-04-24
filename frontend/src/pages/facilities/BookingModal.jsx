@@ -1,18 +1,34 @@
 // BookingModal.jsx
 import React, { useState, useEffect } from 'react';
-import { X, User, Phone, FileText, AlertCircle, Clock, Users } from 'lucide-react';
+import { X, User, Phone, FileText, AlertCircle, Clock, Users, Calendar } from 'lucide-react';
 import bookingService from '../../services/bookingService';
 import ConfirmationModal from './ConfirmationModal';
-import TimeSlotPicker from './TimeSlotPicker';
 
 const BookingModal = ({ isOpen, onClose, resource, onSuccess }) => {
     const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
     
+    // Get today's date in Sri Lanka timezone
+    const getTodayDate = () => {
+        const now = new Date();
+        const options = { timeZone: 'Asia/Colombo', year: 'numeric', month: '2-digit', day: '2-digit' };
+        const sriLankaDate = new Intl.DateTimeFormat('en-CA', options).format(now);
+        return sriLankaDate;
+    };
+
+    // Get current time in Sri Lanka in 24-hour format
+    const getCurrentTimeInSL = () => {
+        const now = new Date();
+        const options = { timeZone: 'Asia/Colombo', hour: '2-digit', minute: '2-digit', hour12: false };
+        const timeString = new Intl.DateTimeFormat('en-US', options).format(now);
+        return timeString;
+    };
+
     const [formData, setFormData] = useState({
         studentId: String(currentUser.id || ''),
         studentName: String(currentUser.name || ''),
         contactNumber: '',
         purpose: '',
+        reservationDate: getTodayDate(),
         startTime: '',
         endTime: '',
         slotNumber: null,
@@ -22,6 +38,7 @@ const BookingModal = ({ isOpen, onClose, resource, onSuccess }) => {
     const [loading, setLoading] = useState(false);
     const [submitError, setSubmitError] = useState('');
     const [bookedSlots, setBookedSlots] = useState([]);
+    const [selectedDate, setSelectedDate] = useState(getTodayDate());
     
     const [confirmationModal, setConfirmationModal] = useState({
         isOpen: false,
@@ -34,12 +51,14 @@ const BookingModal = ({ isOpen, onClose, resource, onSuccess }) => {
 
     useEffect(() => {
         if (isOpen && resource) {
-            fetchBookedSlots();
+            const today = getTodayDate();
+            setSelectedDate(today);
             setFormData({
                 studentId: String(currentUser.id || ''),
                 studentName: String(currentUser.name || ''),
                 contactNumber: '',
                 purpose: '',
+                reservationDate: today,
                 startTime: '',
                 endTime: '',
                 slotNumber: null,
@@ -47,28 +66,58 @@ const BookingModal = ({ isOpen, onClose, resource, onSuccess }) => {
             });
             setErrors({});
             setSubmitError('');
+            fetchBookedSlots(today);
         }
     }, [isOpen, resource]);
 
-    const fetchBookedSlots = async () => {
+    const fetchBookedSlots = async (date) => {
         if (!resource || !resource.id) return;
         
         try {
-            const bookings = await bookingService.getBookingsByResourceId(resource.id);
-            const approvedAndPending = (bookings || []).filter(b => 
-                b && (b.status === 'APPROVED' || b.status === 'PENDING')
-            );
-            
-            const slots = approvedAndPending.map(b => ({
-                startTime: b.startTime || '',
-                endTime: b.endTime || '',
-                slotNumber: b.slotNumber || null
-            }));
-            
-            setBookedSlots(slots);
+            const slots = await bookingService.getBookedSlotsForDate(resource.id, date);
+            setBookedSlots(slots || []);
         } catch (error) {
             console.error('Error fetching booked slots:', error);
             setBookedSlots([]);
+        }
+    };
+
+    const handleDateChange = (e) => {
+        const newDate = e.target.value;
+        setSelectedDate(newDate);
+        setFormData(prev => ({
+            ...prev,
+            reservationDate: newDate,
+            startTime: '',
+            endTime: '',
+            slotNumber: null
+        }));
+        fetchBookedSlots(newDate);
+        if (errors.timeSlot) {
+            setErrors(prev => ({ ...prev, timeSlot: '' }));
+        }
+    };
+
+    const handleStartTimeChange = (e) => {
+        const startTime = e.target.value;
+        setFormData(prev => ({
+            ...prev,
+            startTime,
+            endTime: ''
+        }));
+        if (errors.timeSlot || errors.startTime || errors.endTime) {
+            setErrors(prev => ({ ...prev, timeSlot: '', startTime: '', endTime: '' }));
+        }
+    };
+
+    const handleEndTimeChange = (e) => {
+        const endTime = e.target.value;
+        setFormData(prev => ({
+            ...prev,
+            endTime
+        }));
+        if (errors.timeSlot || errors.endTime) {
+            setErrors(prev => ({ ...prev, timeSlot: '', endTime: '' }));
         }
     };
 
@@ -93,6 +142,10 @@ const BookingModal = ({ isOpen, onClose, resource, onSuccess }) => {
             newErrors.contactNumber = 'Contact number must be 10 digits';
         }
         
+        if (!formData.reservationDate) {
+            newErrors.date = 'Please select a date';
+        }
+        
         const isMeetingRoom = resource && (resource.hasSlots === true || resource.type === 'MEETING_ROOM');
         
         if (isMeetingRoom) {
@@ -113,13 +166,57 @@ const BookingModal = ({ isOpen, onClose, resource, onSuccess }) => {
             if (memberIds.length !== uniqueIds.size) {
                 newErrors.members = 'Duplicate member IDs are not allowed';
             }
-            
-            if (memberIds.includes(studentId.trim())) {
-                newErrors.members = 'Cannot include yourself in additional members';
-            }
         } else {
-            if (!formData.startTime || !formData.endTime) {
-                newErrors.timeSlot = 'Please select a time period';
+            if (!formData.startTime) {
+                newErrors.startTime = 'Please select start time';
+            }
+            if (!formData.endTime) {
+                newErrors.endTime = 'Please select end time';
+            }
+            
+            if (formData.startTime && formData.endTime) {
+                const [startHour, startMin] = formData.startTime.split(':').map(Number);
+                const [endHour, endMin] = formData.endTime.split(':').map(Number);
+                
+                const startMinutes = startHour * 60 + startMin;
+                const endMinutes = endHour * 60 + endMin;
+                const diffMinutes = endMinutes - startMinutes;
+                
+                if (diffMinutes <= 0) {
+                    newErrors.endTime = 'End time must be after start time';
+                } else if (diffMinutes < 60) {
+                    newErrors.endTime = 'Minimum booking duration is 1 hour';
+                } else if (diffMinutes > 240) {
+                    newErrors.endTime = 'Maximum booking duration is 4 hours';
+                }
+                
+                // Check for conflicts with existing bookings
+                if (diffMinutes >= 60 && diffMinutes <= 240 && !isMeetingRoom && !newErrors.endTime) {
+                    const hasConflict = bookedSlots.some(slot => {
+                        const slotStart = slot.startTime || '';
+                        const slotEnd = slot.endTime || '';
+                        return (formData.startTime < slotEnd && formData.endTime > slotStart);
+                    });
+                    
+                    if (hasConflict) {
+                        newErrors.timeSlot = 'The selected time period conflicts with an existing booking';
+                    }
+                }
+                
+                // Validate time is within resource availability
+                if (!newErrors.endTime && !newErrors.startTime) {
+                    const availableFrom = resource.availableFrom || '08:00';
+                    const availableTo = resource.availableTo || '20:00';
+                    
+                    const [availFromH, availFromM] = availableFrom.split(':').map(Number);
+                    const [availToH, availToM] = availableTo.split(':').map(Number);
+                    const availFromMinutes = availFromH * 60 + availFromM;
+                    const availToMinutes = availToH * 60 + availToM;
+                    
+                    if (startMinutes < availFromMinutes || endMinutes > availToMinutes) {
+                        newErrors.timeSlot = `Booking time must be between ${formatTimeDisplay(availableFrom)} and ${formatTimeDisplay(availableTo)}`;
+                    }
+                }
             }
         }
         
@@ -134,10 +231,7 @@ const BookingModal = ({ isOpen, onClose, resource, onSuccess }) => {
             [name]: value
         }));
         if (errors[name]) {
-            setErrors(prev => ({
-                ...prev,
-                [name]: ''
-            }));
+            setErrors(prev => ({ ...prev, [name]: '' }));
         }
     };
 
@@ -148,30 +242,6 @@ const BookingModal = ({ isOpen, onClose, resource, onSuccess }) => {
             ...prev,
             additionalMembers: newMembers
         }));
-        if (errors[`member${index}`]) {
-            setErrors(prev => ({
-                ...prev,
-                [`member${index}`]: ''
-            }));
-        }
-        if (errors.members) {
-            setErrors(prev => ({
-                ...prev,
-                members: ''
-            }));
-        }
-    };
-
-    const handleTimeSelect = (startTime, endTime) => {
-        setFormData(prev => ({
-            ...prev,
-            startTime,
-            endTime,
-            slotNumber: null
-        }));
-        if (errors.timeSlot) {
-            setErrors(prev => ({ ...prev, timeSlot: '' }));
-        }
     };
 
     const handleSlotSelect = (slotNumber, startTime, endTime) => {
@@ -199,17 +269,29 @@ const BookingModal = ({ isOpen, onClose, resource, onSuccess }) => {
         try {
             const isMeetingRoom = resource && (resource.hasSlots === true || resource.type === 'MEETING_ROOM');
             
+            // Ensure time is sent in HH:mm:ss format
+            const formatTimeForApi = (time) => {
+                if (!time) return null;
+                // If time already has seconds, return as is
+                if (time.split(':').length === 3) return time;
+                // Add seconds
+                return time + ':00';
+            };
+            
             const bookingData = {
                 studentId: String(currentUser.id),
                 studentName: String(currentUser.name),
                 contactNumber: formData.contactNumber,
                 resourceId: resource.id,
                 purpose: formData.purpose || '',
-                startTime: formData.startTime,
-                endTime: formData.endTime,
+                reservationDate: formData.reservationDate,
+                startTime: formatTimeForApi(formData.startTime),
+                endTime: formatTimeForApi(formData.endTime),
                 slotNumber: isMeetingRoom ? formData.slotNumber : null,
                 additionalMembers: isMeetingRoom ? formData.additionalMembers.filter(m => m && m.trim()) : null
             };
+            
+            console.log('Sending booking data:', bookingData);
             
             const response = await bookingService.createBooking(bookingData);
             
@@ -224,8 +306,6 @@ const BookingModal = ({ isOpen, onClose, resource, onSuccess }) => {
             
             if (error && error.message) {
                 errorMessage = error.message;
-            } else if (error && error.response && error.response.data && error.response.data.message) {
-                errorMessage = error.response.data.message;
             }
             
             setSubmitError(errorMessage);
@@ -244,26 +324,139 @@ const BookingModal = ({ isOpen, onClose, resource, onSuccess }) => {
     };
 
     const handleClose = () => {
-        setFormData({
-            studentId: String(currentUser.id || ''),
-            studentName: String(currentUser.name || ''),
-            contactNumber: '',
-            purpose: '',
-            startTime: '',
-            endTime: '',
-            slotNumber: null,
-            additionalMembers: ['', '', '', '']
-        });
-        setErrors({});
-        setSubmitError('');
         onClose();
+    };
+
+    const formatTimeDisplay = (time) => {
+        if (!time) return '';
+        const parts = time.split(':');
+        if (parts.length >= 2) {
+            const hours = parseInt(parts[0]);
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            const displayHours = hours > 12 ? hours - 12 : (hours === 0 ? 12 : hours);
+            return `${displayHours}:${parts[1]} ${ampm}`;
+        }
+        return time;
+    };
+
+    const formatTimeForValue = (time) => {
+        if (!time) return '';
+        // Return only HH:mm part
+        const parts = time.split(':');
+        if (parts.length >= 2) {
+            return `${parts[0].padStart(2, '0')}:${parts[1]}`;
+        }
+        return time;
+    };
+
+    // Get available end times based on selected start time
+    const getAvailableEndTimes = () => {
+        if (!formData.startTime) return [];
+        
+        const [startHour, startMin] = formData.startTime.split(':').map(Number);
+        const startMinutes = startHour * 60 + startMin;
+        
+        const isMeetingRoom = resource && (resource.hasSlots === true || resource.type === 'MEETING_ROOM');
+        const availableFrom = resource.availableFrom || (isMeetingRoom ? '09:00' : '08:00');
+        const availableTo = resource.availableTo || (isMeetingRoom ? '19:00' : '20:00');
+        
+        const [availableToHour, availableToMin] = formatTimeForValue(availableTo).split(':').map(Number);
+        const availableToMinutes = availableToHour * 60 + availableToMin;
+        
+        const options = [];
+        
+        // Generate end times in 30-minute intervals from start time + 1 hour to start time + 4 hours
+        const maxEndMinutes = Math.min(startMinutes + 240, availableToMinutes);
+        
+        for (let minutes = startMinutes + 60; minutes <= maxEndMinutes; minutes += 30) {
+            const hour = Math.floor(minutes / 60);
+            const min = minutes % 60;
+            const timeStr = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
+            
+            // Check if this end time conflicts with any booked slot
+            const hasConflict = bookedSlots.some(slot => {
+                const slotStart = formatTimeForValue(slot.startTime || '');
+                const slotEnd = formatTimeForValue(slot.endTime || '');
+                return (formData.startTime < slotEnd && timeStr > slotStart);
+            });
+            
+            // Calculate duration
+            const durationMinutes = minutes - startMinutes;
+            const durationHours = Math.floor(durationMinutes / 60);
+            const durationRemainingMinutes = durationMinutes % 60;
+            const durationLabel = durationRemainingMinutes > 0 
+                ? `${durationHours}h ${durationRemainingMinutes}m` 
+                : `${durationHours}h`;
+            
+            options.push({
+                time: timeStr,
+                display: formatTimeDisplay(timeStr),
+                duration: durationLabel,
+                conflict: hasConflict
+            });
+        }
+        
+        return options;
+    };
+
+    // Generate available start times
+    const getAvailableStartTimes = () => {
+        const isMeetingRoom = resource && (resource.hasSlots === true || resource.type === 'MEETING_ROOM');
+        const availableFrom = resource.availableFrom || (isMeetingRoom ? '09:00' : '08:00');
+        const availableTo = resource.availableTo || (isMeetingRoom ? '19:00' : '20:00');
+        
+        const [fromHour, fromMin] = formatTimeForValue(availableFrom).split(':').map(Number);
+        const [toHour, toMin] = formatTimeForValue(availableTo).split(':').map(Number);
+        
+        const fromMinutes = fromHour * 60 + fromMin;
+        const toMinutes = toHour * 60 + toMin;
+        
+        let minMinutes = fromMinutes;
+        
+        // If today, restrict to current time
+        if (selectedDate === getTodayDate()) {
+            const currentTime = getCurrentTimeInSL();
+            const [currentHour, currentMin] = currentTime.split(':').map(Number);
+            let roundedMin = Math.ceil(currentMin / 30) * 30;
+            let roundedHour = currentHour;
+            if (roundedMin >= 60) {
+                roundedHour += 1;
+                roundedMin = 0;
+            }
+            minMinutes = Math.max(fromMinutes, roundedHour * 60 + roundedMin);
+        }
+        
+        const options = [];
+        
+        // Generate start times in 30-minute intervals
+        for (let minutes = minMinutes; minutes <= toMinutes - 60; minutes += 30) {
+            const hour = Math.floor(minutes / 60);
+            const min = minutes % 60;
+            const timeStr = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
+            
+            options.push({
+                time: timeStr,
+                display: formatTimeDisplay(timeStr)
+            });
+        }
+        
+        return options;
     };
 
     if (!isOpen || !resource) return null;
 
     const isMeetingRoom = resource && (resource.hasSlots === true || resource.type === 'MEETING_ROOM');
-    const availableFrom = resource.availableFrom || (isMeetingRoom ? '09:00' : '08:00');
-    const availableTo = resource.availableTo || (isMeetingRoom ? '19:00' : '20:00');
+    const availableStartTimes = getAvailableStartTimes();
+    const availableEndTimes = getAvailableEndTimes();
+
+    // Meeting room slots
+    const meetingRoomSlots = [
+        { number: 1, start: '09:00', end: '11:00', label: '9:00 AM - 11:00 AM' },
+        { number: 2, start: '11:00', end: '13:00', label: '11:00 AM - 1:00 PM' },
+        { number: 3, start: '13:00', end: '15:00', label: '1:00 PM - 3:00 PM' },
+        { number: 4, start: '15:00', end: '17:00', label: '3:00 PM - 5:00 PM' },
+        { number: 5, start: '17:00', end: '19:00', label: '5:00 PM - 7:00 PM' }
+    ];
 
     return (
         <>
@@ -279,53 +472,33 @@ const BookingModal = ({ isOpen, onClose, resource, onSuccess }) => {
                             <h2 className="text-xl font-bold text-slate-800">Book Resource</h2>
                             <p className="text-xs text-slate-500 mt-0.5">{resource.name}</p>
                         </div>
-                        <button
-                            onClick={handleClose}
-                            className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors"
-                        >
+                        <button onClick={handleClose} className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors">
                             <X className="w-4 h-4 text-slate-500" />
                         </button>
                     </div>
                     
                     <form onSubmit={handleSubmit} className="p-4 space-y-4">
+                        {/* Student Info (Read Only) */}
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                                    Student ID <span className="text-red-500">*</span>
-                                </label>
+                                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Student ID</label>
                                 <div className="relative">
                                     <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                                    <input
-                                        type="text"
-                                        name="studentId"
-                                        value={formData.studentId}
-                                        readOnly
-                                        className="w-full pl-9 pr-3 py-2 text-sm bg-slate-100 border border-slate-200 rounded-lg outline-none text-slate-600"
-                                    />
+                                    <input type="text" value={formData.studentId} readOnly className="w-full pl-9 pr-3 py-2 text-sm bg-slate-100 border border-slate-200 rounded-lg outline-none text-slate-600" />
                                 </div>
                             </div>
-                            
                             <div>
-                                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                                    Full Name <span className="text-red-500">*</span>
-                                </label>
+                                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Full Name</label>
                                 <div className="relative">
                                     <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                                    <input
-                                        type="text"
-                                        name="studentName"
-                                        value={formData.studentName}
-                                        readOnly
-                                        className="w-full pl-9 pr-3 py-2 text-sm bg-slate-100 border border-slate-200 rounded-lg outline-none text-slate-600"
-                                    />
+                                    <input type="text" value={formData.studentName} readOnly className="w-full pl-9 pr-3 py-2 text-sm bg-slate-100 border border-slate-200 rounded-lg outline-none text-slate-600" />
                                 </div>
                             </div>
                         </div>
                         
+                        {/* Contact Number */}
                         <div>
-                            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                                Contact Number <span className="text-red-500">*</span>
-                            </label>
+                            <label className="block text-xs font-semibold text-slate-700 mb-1.5">Contact Number <span className="text-red-500">*</span></label>
                             <div className="relative">
                                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                                 <input
@@ -335,20 +508,169 @@ const BookingModal = ({ isOpen, onClose, resource, onSuccess }) => {
                                     onChange={handleChange}
                                     placeholder="Enter 10-digit mobile number"
                                     maxLength="10"
-                                    className={`w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all ${
-                                        errors.contactNumber ? 'border-red-500' : 'border-slate-200'
-                                    }`}
+                                    className={`w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all ${errors.contactNumber ? 'border-red-500' : 'border-slate-200'}`}
                                 />
                             </div>
-                            {errors.contactNumber && (
-                                <p className="text-red-500 text-xs mt-0.5">{errors.contactNumber}</p>
-                            )}
+                            {errors.contactNumber && <p className="text-red-500 text-xs mt-0.5">{errors.contactNumber}</p>}
                         </div>
                         
+                        {/* Date Selection */}
                         <div>
-                            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                                Purpose (Optional)
-                            </label>
+                            <label className="block text-xs font-semibold text-slate-700 mb-1.5">Select Date <span className="text-red-500">*</span></label>
+                            <div className="relative">
+                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                <input
+                                    type="date"
+                                    value={selectedDate}
+                                    onChange={handleDateChange}
+                                    min={getTodayDate()}
+                                    className={`w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all ${errors.date ? 'border-red-500' : 'border-slate-200'}`}
+                                />
+                            </div>
+                            {errors.date && <p className="text-red-500 text-xs mt-0.5">{errors.date}</p>}
+                        </div>
+                        
+                        {/* Time Selection */}
+                        {isMeetingRoom ? (
+                            // Meeting Room - Fixed 2-hour slots
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                                    Select Time Slot (2 Hours) <span className="text-red-500">*</span>
+                                </label>
+                                <div className="grid grid-cols-1 gap-2">
+                                    {meetingRoomSlots.map((slot) => {
+                                        const isBooked = bookedSlots.some(b => b.slotNumber === slot.number);
+                                        const selected = formData.slotNumber === slot.number;
+                                        
+                                        return (
+                                            <button
+                                                key={slot.number}
+                                                type="button"
+                                                disabled={isBooked}
+                                                onClick={() => !isBooked && handleSlotSelect(slot.number, slot.start, slot.end)}
+                                                className={`flex items-center justify-between p-3 rounded-xl border-2 transition-all ${
+                                                    isBooked 
+                                                        ? 'bg-red-50 border-red-200 text-red-400 cursor-not-allowed opacity-60'
+                                                        : selected
+                                                            ? 'bg-blue-50 border-blue-500 text-blue-700 shadow-md'
+                                                            : 'bg-white border-slate-200 text-slate-700 hover:border-blue-300'
+                                                }`}
+                                            >
+                                                <div className="flex items-center space-x-3">
+                                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                                                        isBooked ? 'bg-red-100' : selected ? 'bg-blue-100' : 'bg-slate-100'
+                                                    }`}>
+                                                        <Clock className={`w-5 h-5 ${isBooked ? 'text-red-400' : selected ? 'text-blue-600' : 'text-slate-400'}`} />
+                                                    </div>
+                                                    <span className="font-semibold text-sm">{slot.label}</span>
+                                                </div>
+                                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${
+                                                    isBooked ? 'bg-red-100 text-red-600' : selected ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'
+                                                }`}>
+                                                    {isBooked ? 'BOOKED' : selected ? 'SELECTED' : 'AVAILABLE'}
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                {errors.timeSlot && <p className="text-red-500 text-xs mt-1">{errors.timeSlot}</p>}
+                            </div>
+                        ) : (
+                            // Regular Resources - Flexible time selection
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                                    Select Time Period <span className="text-red-500">*</span>
+                                </label>
+                                <p className="text-xs text-slate-400 mb-3">Minimum 1 hour, maximum 4 hours</p>
+                                
+                                <div className="grid grid-cols-2 gap-4">
+                                    {/* Start Time */}
+                                    <div>
+                                        <label className="block text-xs font-semibold text-slate-600 mb-1">Start Time <span className="text-red-500">*</span></label>
+                                        <select
+                                            value={formData.startTime}
+                                            onChange={handleStartTimeChange}
+                                            className={`w-full px-3 py-2.5 text-sm bg-slate-50 border rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all ${errors.startTime ? 'border-red-500' : 'border-slate-200'}`}
+                                        >
+                                            <option value="">Select start time</option>
+                                            {availableStartTimes.map((option) => (
+                                                <option key={option.time} value={option.time}>
+                                                    {option.display}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        {errors.startTime && <p className="text-red-500 text-xs mt-0.5">{errors.startTime}</p>}
+                                    </div>
+                                    
+                                    {/* End Time */}
+                                    <div>
+                                        <label className="block text-xs font-semibold text-slate-600 mb-1">End Time <span className="text-red-500">*</span></label>
+                                        <select
+                                            value={formData.endTime}
+                                            onChange={handleEndTimeChange}
+                                            disabled={!formData.startTime}
+                                            className={`w-full px-3 py-2.5 text-sm bg-slate-50 border rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed ${errors.endTime ? 'border-red-500' : 'border-slate-200'}`}
+                                        >
+                                            <option value="">Select end time</option>
+                                            {availableEndTimes.map((option) => (
+                                                <option key={option.time} value={option.time} disabled={option.conflict}>
+                                                    {option.display} ({option.duration}) {option.conflict ? '- BOOKED' : ''}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        {errors.endTime && <p className="text-red-500 text-xs mt-0.5">{errors.endTime}</p>}
+                                    </div>
+                                </div>
+                                
+                                {/* Selected Duration Display */}
+                                {formData.startTime && formData.endTime && !errors.endTime && !errors.startTime && (
+                                    <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-sm font-semibold text-blue-700">Selected Period:</span>
+                                            <span className="text-sm font-bold text-blue-800">
+                                                {formatTimeDisplay(formData.startTime)} - {formatTimeDisplay(formData.endTime)}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center justify-between mt-1">
+                                            <span className="text-sm font-semibold text-blue-700">Duration:</span>
+                                            <span className="text-sm font-bold text-blue-800">
+                                                {(() => {
+                                                    const [startHour, startMin] = formData.startTime.split(':').map(Number);
+                                                    const [endHour, endMin] = formData.endTime.split(':').map(Number);
+                                                    const diffMin = (endHour * 60 + endMin) - (startHour * 60 + startMin);
+                                                    const hours = Math.floor(diffMin / 60);
+                                                    const mins = diffMin % 60;
+                                                    return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+                                                })()}
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                {/* Booked Slots Display */}
+                                {bookedSlots.length > 0 && (
+                                    <div className="mt-3 bg-slate-50 border border-slate-200 rounded-lg p-3">
+                                        <p className="text-xs font-semibold text-slate-600 mb-2">Already Booked Slots:</p>
+                                        <div className="space-y-1">
+                                            {bookedSlots.map((slot, index) => (
+                                                <div key={index} className="flex items-center justify-between text-xs">
+                                                    <span className="text-slate-500">
+                                                        {formatTimeDisplay(formatTimeForValue(slot.startTime))} - {formatTimeDisplay(formatTimeForValue(slot.endTime))}
+                                                    </span>
+                                                    <span className="text-red-500 font-semibold">BOOKED</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                {errors.timeSlot && <p className="text-red-500 text-xs mt-1">{errors.timeSlot}</p>}
+                            </div>
+                        )}
+                        
+                        {/* Purpose */}
+                        <div>
+                            <label className="block text-xs font-semibold text-slate-700 mb-1.5">Purpose (Optional)</label>
                             <div className="relative">
                                 <FileText className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
                                 <textarea
@@ -362,61 +684,33 @@ const BookingModal = ({ isOpen, onClose, resource, onSuccess }) => {
                             </div>
                         </div>
                         
-                        {/* Time Slot Picker */}
-                        <TimeSlotPicker
-                            availableFrom={availableFrom}
-                            availableTo={availableTo}
-                            hasSlots={isMeetingRoom}
-                            slotDuration={isMeetingRoom ? 120 : 60}
-                            selectedStartTime={formData.startTime}
-                            selectedEndTime={formData.endTime}
-                            selectedSlot={formData.slotNumber}
-                            onTimeSelect={handleTimeSelect}
-                            onSlotSelect={handleSlotSelect}
-                            bookedSlots={bookedSlots}
-                            error={errors.timeSlot}
-                        />
-                        
                         {/* Additional Members for Meeting Room */}
                         {isMeetingRoom && (
                             <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
                                 <div className="flex items-center space-x-2 mb-3">
                                     <Users className="w-5 h-5 text-indigo-600" />
-                                    <h3 className="text-sm font-bold text-indigo-900">
-                                        Additional Members (4 required)
-                                    </h3>
+                                    <h3 className="text-sm font-bold text-indigo-900">Additional Members (4 required)</h3>
                                 </div>
-                                
                                 <div className="grid grid-cols-2 gap-3">
                                     {formData.additionalMembers.map((member, index) => (
                                         <div key={index}>
-                                            <label className="block text-xs font-semibold text-indigo-700 mb-1">
-                                                Member {index + 1} ID <span className="text-red-500">*</span>
-                                            </label>
+                                            <label className="block text-xs font-semibold text-indigo-700 mb-1">Member {index + 1} ID <span className="text-red-500">*</span></label>
                                             <input
                                                 type="text"
                                                 value={member}
                                                 onChange={(e) => handleMemberChange(index, e.target.value)}
-                                                placeholder={`Enter student ID ${index + 1}`}
-                                                className={`w-full px-3 py-2 text-sm bg-white border rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all ${
-                                                    errors[`member${index}`] ? 'border-red-500' : 'border-indigo-200'
-                                                }`}
+                                                placeholder={`Student ID ${index + 1}`}
+                                                className={`w-full px-3 py-2 text-sm bg-white border rounded-lg outline-none ${errors[`member${index}`] ? 'border-red-500' : 'border-indigo-200'}`}
                                             />
-                                            {errors[`member${index}`] && (
-                                                <p className="text-red-500 text-xs mt-0.5">{errors[`member${index}`]}</p>
-                                            )}
+                                            {errors[`member${index}`] && <p className="text-red-500 text-xs mt-0.5">{errors[`member${index}`]}</p>}
                                         </div>
                                     ))}
                                 </div>
-                                {errors.members && (
-                                    <p className="text-red-500 text-xs mt-2">{errors.members}</p>
-                                )}
-                                <p className="text-xs text-indigo-600 mt-3">
-                                    Note: Including the creator, the meeting room will have 5 members total.
-                                </p>
+                                {errors.members && <p className="text-red-500 text-xs mt-2">{errors.members}</p>}
                             </div>
                         )}
                         
+                        {/* Info Box */}
                         <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
                             <div className="flex items-start space-x-2">
                                 <AlertCircle className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
@@ -424,12 +718,10 @@ const BookingModal = ({ isOpen, onClose, resource, onSuccess }) => {
                                     <p className="font-semibold mb-0.5">Booking Information:</p>
                                     <ul className="space-y-0.5 text-blue-700">
                                         <li>• Resource: {resource.name}</li>
+                                        <li>• Date: {selectedDate}</li>
                                         <li>• Type: {resource.type?.replace('_', ' ')}</li>
-                                        <li>• Location: {resource.location || 'N/A'}</li>
-                                        <li>• Available: {availableFrom} - {availableTo}</li>
-                                        {isMeetingRoom && (
-                                            <li>• Slot Duration: 2 hours</li>
-                                        )}
+                                        <li>• Available: {formatTimeDisplay(formatTimeForValue(resource.availableFrom || (isMeetingRoom ? '09:00' : '08:00')))} - {formatTimeDisplay(formatTimeForValue(resource.availableTo || (isMeetingRoom ? '19:00' : '20:00')))}</li>
+                                        {!isMeetingRoom && <li>• Duration: Min 1 hour, Max 4 hours</li>}
                                         <li>• Status: Pending approval</li>
                                     </ul>
                                 </div>
@@ -443,26 +735,11 @@ const BookingModal = ({ isOpen, onClose, resource, onSuccess }) => {
                         )}
                         
                         <div className="flex space-x-2 pt-2">
-                            <button
-                                type="button"
-                                onClick={handleClose}
-                                className="flex-1 px-3 py-2.5 text-sm border border-slate-300 text-slate-700 font-semibold rounded-lg hover:bg-slate-50 transition-colors"
-                            >
+                            <button type="button" onClick={handleClose} className="flex-1 px-3 py-2.5 text-sm border border-slate-300 text-slate-700 font-semibold rounded-lg hover:bg-slate-50 transition-colors">
                                 Cancel
                             </button>
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className="flex-1 px-3 py-2.5 text-sm bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                {loading ? (
-                                    <div className="flex items-center justify-center">
-                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-1.5" />
-                                        Booking...
-                                    </div>
-                                ) : (
-                                    'Confirm Booking'
-                                )}
+                            <button type="submit" disabled={loading} className="flex-1 px-3 py-2.5 text-sm bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50">
+                                {loading ? 'Booking...' : 'Confirm Booking'}
                             </button>
                         </div>
                     </form>

@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
@@ -39,6 +40,9 @@ public class Booking {
 
     @Column(name = "booking_date", nullable = false)
     private LocalDateTime bookingDate = LocalDateTime.now();
+
+    @Column(name = "reservation_date", nullable = false)
+    private LocalDate reservationDate;
 
     @Column(name = "start_time", nullable = false, columnDefinition = "TIME")
     private LocalTime startTime;
