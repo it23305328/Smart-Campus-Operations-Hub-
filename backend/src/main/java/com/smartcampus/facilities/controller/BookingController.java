@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +49,18 @@ public class BookingController {
     public ResponseEntity<List<BookingResponseDTO>> getBookingsByResourceId(@PathVariable Long resourceId) {
         List<BookingResponseDTO> bookings = bookingService.getBookingsByResourceId(resourceId);
         return ResponseEntity.ok(bookings);
+    }
+
+    @GetMapping("/resource/{resourceId}/availability")
+    public ResponseEntity<List<Map<String, Object>>> getAvailableSlots(@PathVariable Long resourceId) {
+        List<LocalTime[]> availableSlots = bookingService.getAvailableSlots(resourceId);
+        List<Map<String, Object>> response = availableSlots.stream().map(slot -> {
+            Map<String, Object> slotMap = new HashMap<>();
+            slotMap.put("startTime", slot[0].toString());
+            slotMap.put("endTime", slot[1].toString());
+            return slotMap;
+        }).collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/check")

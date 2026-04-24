@@ -48,7 +48,11 @@ const ResourceCatalogue = ({ userRole = 'USER' }) => {
         try {
             setLoading(true);
             const data = await resourceService.getAllResources(filters);
-            setResources(data);
+            const processedData = data.map(resource => ({
+                ...resource,
+                hasSlots: resource.type === 'MEETING_ROOM' ? true : (resource.hasSlots || false)
+            }));
+            setResources(processedData);
         } catch (error) {
             console.error('Error fetching resources:', error);
         } finally {
@@ -60,14 +64,26 @@ const ResourceCatalogue = ({ userRole = 'USER' }) => {
         if (isAdmin || !currentUser.id) return;
         
         try {
-            const studentId = currentUser.id.toString();
+            const studentId = String(currentUser.id);
             const bookings = await bookingService.getUserBookings(studentId);
             
             const bookingMap = {};
             bookings.forEach(booking => {
                 const resourceId = booking.resourceId;
                 if (resourceId) {
-                    bookingMap[resourceId] = booking;
+                    // Only store the latest booking or active bookings
+                    // If there's an active booking (PENDING/APPROVED), store it
+                    // If the latest booking is CANCELLED/REJECTED, store it for reference
+                    const existingBooking = bookingMap[resourceId];
+                    if (!existingBooking || 
+                        existingBooking.status === 'CANCELLED' || 
+                        existingBooking.status === 'REJECTED') {
+                        bookingMap[resourceId] = booking;
+                    }
+                    // Prefer active bookings over inactive ones
+                    if (booking.status === 'PENDING' || booking.status === 'APPROVED') {
+                        bookingMap[resourceId] = booking;
+                    }
                 }
             });
             setUserBookings(bookingMap);
@@ -144,6 +160,7 @@ const ResourceCatalogue = ({ userRole = 'USER' }) => {
             return;
         }
         
+        // Check for active bookings only (PENDING or APPROVED)
         const existingBooking = userBookings[resource.id];
         
         if (existingBooking) {
@@ -165,32 +182,8 @@ const ResourceCatalogue = ({ userRole = 'USER' }) => {
                     () => {}
                 );
                 return;
-            } else if (existingBooking.status === 'REJECTED') {
-                if (isResourceFullyBooked(resource.id)) {
-                    showConfirmation(
-                        'Resource Fully Booked',
-                        'This resource is now fully booked. No capacity available.',
-                        'OK',
-                        'info',
-                        () => {}
-                    );
-                    return;
-                }
-                setSelectedResource(resource);
-                setIsBookingModalOpen(true);
-                return;
             }
-        }
-        
-        if (isResourceFullyBooked(resource.id)) {
-            showConfirmation(
-                'Resource Fully Booked',
-                'This resource has reached its maximum capacity and is fully booked.',
-                'OK',
-                'info',
-                () => {}
-            );
-            return;
+            // If status is CANCELLED or REJECTED, allow re-booking
         }
         
         setSelectedResource(resource);
@@ -226,7 +219,7 @@ const ResourceCatalogue = ({ userRole = 'USER' }) => {
             'warning',
             async () => {
                 try {
-                    await bookingService.cancelBooking(booking.id, currentUser.id.toString());
+                    await bookingService.cancelBooking(booking.id, String(currentUser.id));
                     setUserBookings(prev => {
                         const newBookings = { ...prev };
                         delete newBookings[resourceId];
@@ -267,7 +260,8 @@ const ResourceCatalogue = ({ userRole = 'USER' }) => {
             'danger',
             async () => {
                 try {
-                    await bookingService.cancelBooking(booking.id, currentUser.id.toString());
+                    await bookingService.cancelBooking(booking.id, String(currentUser.id));
+                    // Remove from userBookings so user can book again
                     setUserBookings(prev => {
                         const newBookings = { ...prev };
                         delete newBookings[resourceId];
@@ -278,7 +272,7 @@ const ResourceCatalogue = ({ userRole = 'USER' }) => {
                     
                     showConfirmation(
                         'Booking Cancelled',
-                        'Your booking has been successfully cancelled.',
+                        'Your booking has been successfully cancelled. You can book this resource again if needed.',
                         'OK',
                         'info',
                         () => {}
@@ -334,6 +328,11 @@ const ResourceCatalogue = ({ userRole = 'USER' }) => {
     const isResourceRejectedForCurrentUser = (resourceId) => {
         const booking = userBookings[resourceId];
         return booking && booking.status === 'REJECTED';
+    };
+
+    const isResourceCancelledByCurrentUser = (resourceId) => {
+        const booking = userBookings[resourceId];
+        return booking && booking.status === 'CANCELLED';
     };
 
     const types = ['ALL', 'LECTURE_HALL', 'LAB', 'MEETING_ROOM', 'EQUIPMENT'];
@@ -421,11 +420,18 @@ const ResourceCatalogue = ({ userRole = 'USER' }) => {
                                 const isBookedByUser = isResourceBookedByCurrentUser(resource.id);
                                 const isPendingForUser = isResourcePendingForCurrentUser(resource.id);
                                 const isRejectedForUser = isResourceRejectedForCurrentUser(resource.id);
+                                const isCancelledByUser = isResourceCancelledByCurrentUser(resource.id);
                                 const userHasActiveBooking = hasActiveBooking(resource.id);
                                 const availableCapacity = getAvailableCapacity(resource.id);
                                 const bookedCount = approvedBookingsCount[resource.id] || 0;
                                 const isFullyBooked = isResourceFullyBooked(resource.id);
                                 const hasCapacity = resource.capacity && resource.capacity > 0;
+                                const isMeetingRoom = resource.type === 'MEETING_ROOM';
+                                
+                                // Determine if user can book (not admin, no active booking, resource is active)
+                                const canBook = !isAdmin && !userHasActiveBooking && resource.status === 'ACTIVE';
+                                // Show "Book Again" if user had a cancelled or rejected booking
+                                const canBookAgain = !isAdmin && (isCancelledByUser || isRejectedForUser) && resource.status === 'ACTIVE';
                                 
                                 return (
                                     <div key={resource.id} className="group bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-lg hover:shadow-2xl transition-all duration-300">
@@ -436,27 +442,30 @@ const ResourceCatalogue = ({ userRole = 'USER' }) => {
                                             </div>
                                             <div className="absolute bottom-4 left-6 text-white">
                                                 <h3 className="text-2xl font-bold leading-tight">{resource.name}</h3>
+                                                {isMeetingRoom && (
+                                                    <p className="text-xs text-blue-200 mt-1">2-Hour Slots • 5 Members</p>
+                                                )}
                                             </div>
                                             {!isAdmin && isBookedByUser && (
-                                                <div className="absolute top-4 left-4">
-                                                    <CheckCircle className="w-6 h-6 text-green-400" />
+                                                <div className="absolute top-4 left-4 bg-green-500 rounded-full p-1">
+                                                    <CheckCircle className="w-5 h-5 text-white" />
                                                 </div>
                                             )}
                                             {!isAdmin && isPendingForUser && (
-                                                <div className="absolute top-4 left-4">
-                                                    <Clock className="w-6 h-6 text-yellow-400" />
+                                                <div className="absolute top-4 left-4 bg-yellow-500 rounded-full p-1">
+                                                    <Clock className="w-5 h-5 text-white" />
                                                 </div>
                                             )}
-                                            {!isAdmin && isRejectedForUser && (
-                                                <div className="absolute top-4 left-4">
-                                                    <XCircle className="w-6 h-6 text-red-400" />
+                                            {!isAdmin && (isRejectedForUser || isCancelledByUser) && (
+                                                <div className="absolute top-4 left-4 bg-slate-500 rounded-full p-1">
+                                                    <XCircle className="w-5 h-5 text-white" />
                                                 </div>
                                             )}
                                         </div>
                                         
                                         <div className="p-6 space-y-4">
                                             {/* Capacity Information */}
-                                            {hasCapacity && (
+                                            {hasCapacity && !isMeetingRoom && (
                                                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                                                     <div className="flex items-center justify-between">
                                                         <div className="flex items-center space-x-2">
@@ -481,41 +490,23 @@ const ResourceCatalogue = ({ userRole = 'USER' }) => {
                                                 </div>
                                             )}
                                             
-                                            {/* Fully Booked Warning Banner */}
-                                            {!isAdmin && isFullyBooked && !userHasActiveBooking && (
-                                                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                                                    <div className="flex items-start space-x-2">
-                                                        <XCircle className="w-5 h-5 text-red-500 mt-0.5" />
-                                                        <div>
-                                                            <p className="text-sm font-semibold text-red-700">Fully Booked</p>
-                                                            <p className="text-xs text-red-600">This resource has reached maximum capacity</p>
-                                                        </div>
+                                            {/* Meeting Room Info */}
+                                            {isMeetingRoom && (
+                                                <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3">
+                                                    <div className="flex items-center space-x-2">
+                                                        <Clock className="w-5 h-5 text-indigo-600" />
+                                                        <span className="text-sm font-semibold text-indigo-700">Meeting Room</span>
                                                     </div>
+                                                    <p className="text-xs text-indigo-600 mt-1">
+                                                        5 slots available (2 hours each)
+                                                    </p>
+                                                    <p className="text-xs text-indigo-600">
+                                                        Requires 5 members per booking
+                                                    </p>
                                                 </div>
                                             )}
                                             
-                                            {/* Rejected Message Banner */}
-                                            {!isAdmin && isRejectedForUser && !rejectedMessages[resource.id] && (
-                                                <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start justify-between">
-                                                    <div className="flex items-start space-x-2">
-                                                        <XCircle className="w-5 h-5 text-red-500 mt-0.5" />
-                                                        <div>
-                                                            <p className="text-sm font-semibold text-red-700">Booking Rejected</p>
-                                                            <p className="text-xs text-red-600">
-                                                                {userBookings[resource.id]?.rejectionReason || 'Your booking request was rejected. You can try booking again.'}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                    <button
-                                                        onClick={() => dismissRejectedMessage(resource.id)}
-                                                        className="text-red-400 hover:text-red-600"
-                                                    >
-                                                        <X className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            )}
-                                            
-                                            {/* Pending Status Banner */}
+                                            {/* Status Banners */}
                                             {!isAdmin && isPendingForUser && (
                                                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                                                     <div className="flex items-center space-x-2">
@@ -528,7 +519,6 @@ const ResourceCatalogue = ({ userRole = 'USER' }) => {
                                                 </div>
                                             )}
                                             
-                                            {/* Approved Status Banner */}
                                             {!isAdmin && isBookedByUser && (
                                                 <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                                                     <div className="flex items-center space-x-2">
@@ -541,21 +531,44 @@ const ResourceCatalogue = ({ userRole = 'USER' }) => {
                                                 </div>
                                             )}
                                             
+                                            {!isAdmin && isCancelledByUser && (
+                                                <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+                                                    <div className="flex items-center space-x-2">
+                                                        <XCircle className="w-5 h-5 text-slate-600" />
+                                                        <div>
+                                                            <p className="text-sm font-semibold text-slate-700">Booking Cancelled</p>
+                                                            <p className="text-xs text-slate-600">Your previous booking was cancelled. You can book again.</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            
                                             <div className="flex items-center text-slate-600">
                                                 <MapPin className="w-5 h-5 mr-3 text-slate-400" />
                                                 <span className="font-medium">{resource.location || 'N/A'}</span>
                                             </div>
+                                            
+                                            {!isMeetingRoom && (
+                                                <div className="flex items-center text-slate-600">
+                                                    <Users className="w-5 h-5 mr-3 text-slate-400" />
+                                                    <span className="font-medium">
+                                                        Capacity: {resource.capacity || 'Unlimited'}
+                                                        {hasCapacity && !isAdmin && (
+                                                            <span className="text-xs text-slate-500 ml-1">
+                                                                ({availableCapacity} available)
+                                                            </span>
+                                                        )}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            
                                             <div className="flex items-center text-slate-600">
-                                                <Users className="w-5 h-5 mr-3 text-slate-400" />
-                                                <span className="font-medium">
-                                                    Capacity: {resource.capacity || 'Unlimited'}
-                                                    {hasCapacity && !isAdmin && (
-                                                        <span className="text-xs text-slate-500 ml-1">
-                                                            ({availableCapacity} available)
-                                                        </span>
-                                                    )}
+                                                <Clock className="w-5 h-5 mr-3 text-slate-400" />
+                                                <span className="font-medium text-sm">
+                                                    {resource.availableFrom || '08:00'} - {resource.availableTo || '20:00'}
                                                 </span>
                                             </div>
+                                            
                                             <div className="flex items-center">
                                                 <div className={`px-3 py-1 rounded-full text-xs font-bold ${
                                                     resource.status === 'ACTIVE' 
@@ -564,16 +577,15 @@ const ResourceCatalogue = ({ userRole = 'USER' }) => {
                                                 }`}>
                                                     {resource.status}
                                                 </div>
-                                                {isFullyBooked && (
-                                                    <span className="ml-2 px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700">
-                                                        FULL
+                                                {isMeetingRoom && (
+                                                    <span className="ml-2 px-3 py-1 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700">
+                                                        2HR SLOTS
                                                     </span>
                                                 )}
                                             </div>
                                             
                                             <div className="pt-4 border-t border-slate-50 flex gap-2">
                                                 {isAdmin ? (
-                                                    // Admin View - Details Button
                                                     <button 
                                                         onClick={() => handleShowDetails(resource)}
                                                         className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-2xl font-bold transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2"
@@ -582,20 +594,34 @@ const ResourceCatalogue = ({ userRole = 'USER' }) => {
                                                         View Details
                                                     </button>
                                                 ) : (
-                                                    // User View - Conditional buttons based on booking status
                                                     <>
-                                                        {/* No active booking - Show Book Now button */}
-                                                        {!userHasActiveBooking && !isRejectedForUser && (
+                                                        {/* Show Book Now if user has no active booking and not rejected */}
+                                                        {!userHasActiveBooking && !isRejectedForUser && !isCancelledByUser && (
                                                             <button 
                                                                 onClick={() => handleBookNow(resource)}
-                                                                disabled={resource.status !== 'ACTIVE' || isFullyBooked}
+                                                                disabled={resource.status !== 'ACTIVE'}
                                                                 className={`flex-1 py-3 rounded-2xl font-bold transition-all shadow-lg active:scale-95 ${
-                                                                    resource.status === 'ACTIVE' && !isFullyBooked
+                                                                    resource.status === 'ACTIVE'
                                                                         ? 'bg-slate-900 hover:bg-black text-white'
                                                                         : 'bg-slate-200 text-slate-400 cursor-not-allowed'
                                                                 }`}
                                                             >
-                                                                {isFullyBooked ? 'Fully Booked' : 'Book Now'}
+                                                                Book Now
+                                                            </button>
+                                                        )}
+                                                        
+                                                        {/* Show Book Again if user had cancelled or rejected booking */}
+                                                        {(isCancelledByUser || isRejectedForUser) && (
+                                                            <button 
+                                                                onClick={() => handleBookNow(resource)}
+                                                                disabled={resource.status !== 'ACTIVE'}
+                                                                className={`flex-1 py-3 rounded-2xl font-bold transition-all shadow-lg active:scale-95 ${
+                                                                    resource.status === 'ACTIVE'
+                                                                        ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                                                                        : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                                                                }`}
+                                                            >
+                                                                Book Again
                                                             </button>
                                                         )}
                                                         
@@ -616,21 +642,6 @@ const ResourceCatalogue = ({ userRole = 'USER' }) => {
                                                                 className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 rounded-2xl font-bold transition-all shadow-lg active:scale-95"
                                                             >
                                                                 Cancel Booking
-                                                            </button>
-                                                        )}
-                                                        
-                                                        {/* Rejected booking - Show Book Again button */}
-                                                        {isRejectedForUser && (
-                                                            <button 
-                                                                onClick={() => handleBookNow(resource)}
-                                                                disabled={resource.status !== 'ACTIVE' || isFullyBooked}
-                                                                className={`flex-1 py-3 rounded-2xl font-bold transition-all shadow-lg active:scale-95 ${
-                                                                    resource.status === 'ACTIVE' && !isFullyBooked
-                                                                        ? 'bg-slate-900 hover:bg-black text-white'
-                                                                        : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                                                                }`}
-                                                            >
-                                                                {isFullyBooked ? 'Fully Booked' : 'Book Again'}
                                                             </button>
                                                         )}
                                                         
@@ -656,7 +667,6 @@ const ResourceCatalogue = ({ userRole = 'USER' }) => {
                 )}
             </div>
             
-            {/* Booking Modal */}
             {!isAdmin && (
                 <BookingModal
                     isOpen={isBookingModalOpen}
@@ -666,7 +676,6 @@ const ResourceCatalogue = ({ userRole = 'USER' }) => {
                 />
             )}
             
-            {/* Resource Details Modal */}
             <ResourceDetailsModal
                 isOpen={isDetailsModalOpen}
                 onClose={() => setIsDetailsModalOpen(false)}
@@ -674,11 +683,13 @@ const ResourceCatalogue = ({ userRole = 'USER' }) => {
                 userRole={userRole}
             />
             
-            {/* Confirmation Modal */}
             <ConfirmationModal
                 isOpen={confirmationModal.isOpen}
                 onClose={() => setConfirmationModal(prev => ({ ...prev, isOpen: false }))}
-                onConfirm={confirmationModal.onConfirm}
+                onConfirm={() => {
+                    confirmationModal.onConfirm();
+                    setConfirmationModal(prev => ({ ...prev, isOpen: false }));
+                }}
                 title={confirmationModal.title}
                 message={confirmationModal.message}
                 confirmText={confirmationModal.confirmText}

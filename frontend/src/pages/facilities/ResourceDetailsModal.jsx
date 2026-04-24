@@ -197,7 +197,7 @@ const ResourceDetailsModal = ({ isOpen, onClose, resource, userRole = 'USER' }) 
                 </div>
                 
                 {/* Footer */}
-                <div className="px-6 py-4 bg-slate-50 border-t border-slate-200">
+                <div className="px-6 bg-slate-50 border-t border-slate-200">
                     <button
                         onClick={onClose}
                         className="w-full px-4 py-2.5 bg-slate-900 text-white font-semibold rounded-xl hover:bg-black transition-colors"

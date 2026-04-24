@@ -7,12 +7,10 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Entity
-@Table(name = "bookings", 
-       uniqueConstraints = {
-           @UniqueConstraint(columnNames = {"resource_id", "student_id"})
-       })
+@Table(name = "bookings")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -42,6 +40,12 @@ public class Booking {
     @Column(name = "booking_date", nullable = false)
     private LocalDateTime bookingDate = LocalDateTime.now();
 
+    @Column(name = "start_time", nullable = false, columnDefinition = "TIME")
+    private LocalTime startTime;
+
+    @Column(name = "end_time", nullable = false, columnDefinition = "TIME")
+    private LocalTime endTime;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private BookingStatus status = BookingStatus.PENDING;
@@ -52,11 +56,11 @@ public class Booking {
     @Column(name = "rejection_reason")
     private String rejectionReason;
 
-    @Column(name = "start_time")
-    private LocalDateTime startTime;
+    @Column(name = "slot_number")
+    private Integer slotNumber;
 
-    @Column(name = "end_time")
-    private LocalDateTime endTime;
+    @Column(name = "additional_members", length = 1000)
+    private String additionalMembers;
 
     public enum BookingStatus {
         PENDING,

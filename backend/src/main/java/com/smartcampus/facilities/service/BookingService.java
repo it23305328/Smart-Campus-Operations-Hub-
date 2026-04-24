@@ -1,15 +1,21 @@
 package com.smartcampus.facilities.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smartcampus.facilities.dto.BookingRequestDTO;
 import com.smartcampus.facilities.dto.BookingResponseDTO;
 import com.smartcampus.facilities.model.Booking;
 import com.smartcampus.facilities.model.Resource;
+import com.smartcampus.facilities.model.ResourceType;
 import com.smartcampus.facilities.repository.BookingRepository;
 import com.smartcampus.facilities.repository.ResourceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,6 +24,7 @@ public class BookingService {
 
     private final BookingRepository bookingRepository;
     private final ResourceRepository resourceRepository;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
     public BookingService(BookingRepository bookingRepository, ResourceRepository resourceRepository) {
@@ -34,7 +41,76 @@ public class BookingService {
             throw new RuntimeException("Resource is not available for booking");
         }
 
-        // Check if student already has an ACTIVE booking (PENDING or APPROVED) for this resource
+        LocalTime startTime = bookingRequest.getStartTime();
+        LocalTime endTime = bookingRequest.getEndTime();
+        
+        if (startTime == null || endTime == null) {
+            throw new RuntimeException("Start time and end time are required");
+        }
+
+        LocalTime resourceFrom = resource.getAvailableFrom();
+        LocalTime resourceTo = resource.getAvailableTo();
+        
+        if (resourceFrom == null) {
+            resourceFrom = resource.getType() == ResourceType.MEETING_ROOM ? 
+                LocalTime.of(9, 0) : LocalTime.of(8, 0);
+        }
+        if (resourceTo == null) {
+            resourceTo = resource.getType() == ResourceType.MEETING_ROOM ? 
+                LocalTime.of(19, 0) : LocalTime.of(20, 0);
+        }
+        
+        if (startTime.isBefore(resourceFrom) || endTime.isAfter(resourceTo)) {
+            throw new RuntimeException("Booking time must be between " + resourceFrom + " and " + resourceTo);
+        }
+        
+        if (startTime.isAfter(endTime) || startTime.equals(endTime)) {
+            throw new RuntimeException("Start time must be before end time");
+        }
+
+        if (resource.getHasSlots() != null && resource.getHasSlots() && 
+            resource.getType() == ResourceType.MEETING_ROOM) {
+            
+            if (bookingRequest.getSlotNumber() == null || 
+                bookingRequest.getSlotNumber() < 1 || 
+                bookingRequest.getSlotNumber() > 5) {
+                throw new RuntimeException("Invalid slot number for meeting room");
+            }
+            
+            if (bookingRequest.getAdditionalMembers() == null || 
+                bookingRequest.getAdditionalMembers().size() != 4) {
+                throw new RuntimeException("Meeting room booking requires exactly 4 additional members");
+            }
+            
+            List<String> allMembers = new ArrayList<>(bookingRequest.getAdditionalMembers());
+            allMembers.add(bookingRequest.getStudentId());
+            long distinctCount = allMembers.stream().distinct().count();
+            if (distinctCount != allMembers.size()) {
+                throw new RuntimeException("Duplicate student IDs are not allowed");
+            }
+            
+            List<Booking> slotBookings = bookingRepository.findBookingsBySlot(
+                resource.getId(), 
+                bookingRequest.getSlotNumber(),
+                List.of(Booking.BookingStatus.PENDING, Booking.BookingStatus.APPROVED)
+            );
+            
+            if (!slotBookings.isEmpty()) {
+                throw new RuntimeException("This slot is already booked. Please choose another slot.");
+            }
+        } else {
+            List<Booking> conflictingBookings = bookingRepository.findConflictingBookings(
+                resource.getId(),
+                startTime,
+                endTime,
+                List.of(Booking.BookingStatus.PENDING, Booking.BookingStatus.APPROVED)
+            );
+            
+            if (!conflictingBookings.isEmpty()) {
+                throw new RuntimeException("The selected time period conflicts with an existing booking");
+            }
+        }
+
         boolean hasActiveBooking = bookingRepository.existsByResourceIdAndStudentIdAndStatusIn(
                 bookingRequest.getResourceId(), 
                 bookingRequest.getStudentId(),
@@ -45,17 +121,39 @@ public class BookingService {
             throw new RuntimeException("You already have an active booking or pending request for this resource");
         }
 
-        Booking booking = new Booking();
-        booking.setStudentId(bookingRequest.getStudentId());
-        booking.setStudentName(bookingRequest.getStudentName());
-        booking.setContactNumber(bookingRequest.getContactNumber());
-        booking.setResource(resource);
-        booking.setPurpose(bookingRequest.getPurpose());
-        booking.setStatus(Booking.BookingStatus.PENDING);
+        List<Booking> existingInactiveBookings = bookingRepository.findByResourceIdAndStudentIdAndStatusIn(
+                bookingRequest.getResourceId(), 
+                bookingRequest.getStudentId(),
+                List.of(Booking.BookingStatus.CANCELLED, Booking.BookingStatus.REJECTED)
+        );
+        
+        if (!existingInactiveBookings.isEmpty()) {
+            bookingRepository.deleteAll(existingInactiveBookings);
+        }
 
-        Booking savedBooking = bookingRepository.save(booking);
+        try {
+            Booking booking = new Booking();
+            booking.setStudentId(bookingRequest.getStudentId());
+            booking.setStudentName(bookingRequest.getStudentName());
+            booking.setContactNumber(bookingRequest.getContactNumber());
+            booking.setResource(resource);
+            booking.setPurpose(bookingRequest.getPurpose());
+            booking.setStatus(Booking.BookingStatus.PENDING);
+            booking.setStartTime(startTime);
+            booking.setEndTime(endTime);
+            booking.setSlotNumber(bookingRequest.getSlotNumber());
+            
+            if (bookingRequest.getAdditionalMembers() != null && !bookingRequest.getAdditionalMembers().isEmpty()) {
+                booking.setAdditionalMembers(objectMapper.writeValueAsString(bookingRequest.getAdditionalMembers()));
+            }
 
-        return mapToResponseDTO(savedBooking);
+            Booking savedBooking = bookingRepository.save(booking);
+            return mapToResponseDTO(savedBooking);
+        } catch (DataIntegrityViolationException e) {
+            throw new RuntimeException("Failed to create booking. The time slot may already be taken.");
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Error processing member data");
+        }
     }
 
     public List<BookingResponseDTO> getBookingsByStudentId(String studentId) {
@@ -70,6 +168,78 @@ public class BookingService {
         return bookings.stream()
                 .map(this::mapToResponseDTO)
                 .collect(Collectors.toList());
+    }
+
+    public List<LocalTime[]> getAvailableSlots(Long resourceId) {
+        Resource resource = resourceRepository.findById(resourceId)
+                .orElseThrow(() -> new RuntimeException("Resource not found"));
+        
+        if (resource.getHasSlots() != null && resource.getHasSlots()) {
+            return getAvailableMeetingRoomSlots(resource);
+        }
+        
+        return getAvailableTimeRanges(resource);
+    }
+
+    private List<LocalTime[]> getAvailableMeetingRoomSlots(Resource resource) {
+        List<LocalTime[]> availableSlots = new ArrayList<>();
+        
+        LocalTime[][] slots = {
+            {LocalTime.of(9, 0), LocalTime.of(11, 0)},
+            {LocalTime.of(11, 0), LocalTime.of(13, 0)},
+            {LocalTime.of(13, 0), LocalTime.of(15, 0)},
+            {LocalTime.of(15, 0), LocalTime.of(17, 0)},
+            {LocalTime.of(17, 0), LocalTime.of(19, 0)}
+        };
+        
+        List<Booking> approvedBookings = bookingRepository.findApprovedBookingsByResourceId(resource.getId());
+        
+        for (int i = 0; i < slots.length; i++) {
+            final int slotNum = i + 1;
+            boolean isBooked = approvedBookings.stream()
+                .anyMatch(b -> b.getSlotNumber() != null && b.getSlotNumber() == slotNum);
+            
+            if (!isBooked) {
+                availableSlots.add(slots[i]);
+            }
+        }
+        
+        return availableSlots;
+    }
+
+    private List<LocalTime[]> getAvailableTimeRanges(Resource resource) {
+        List<LocalTime[]> availableRanges = new ArrayList<>();
+        
+        List<Booking> approvedBookings = bookingRepository.findApprovedBookingsByResourceId(resource.getId());
+        approvedBookings.sort((a, b) -> {
+            if (a.getStartTime() == null || b.getStartTime() == null) return 0;
+            return a.getStartTime().compareTo(b.getStartTime());
+        });
+        
+        LocalTime currentTime = resource.getAvailableFrom();
+        if (currentTime == null) {
+            currentTime = LocalTime.of(8, 0);
+        }
+        
+        LocalTime availableTo = resource.getAvailableTo();
+        if (availableTo == null) {
+            availableTo = LocalTime.of(20, 0);
+        }
+        
+        for (Booking booking : approvedBookings) {
+            if (booking.getStartTime() != null && currentTime.isBefore(booking.getStartTime())) {
+                availableRanges.add(new LocalTime[]{currentTime, booking.getStartTime()});
+            }
+            if (booking.getEndTime() != null && booking.getEndTime().isAfter(currentTime)) {
+                currentTime = booking.getEndTime();
+            }
+        }
+        
+        if (currentTime.isBefore(availableTo)) {
+            availableRanges.add(new LocalTime[]{currentTime, availableTo});
+        }
+        
+        return availableRanges;
     }
 
     public boolean hasStudentBookedResource(Long resourceId, String studentId) {
@@ -89,6 +259,14 @@ public class BookingService {
             throw new RuntimeException("You are not authorized to cancel this booking");
         }
 
+        if (booking.getStatus() == Booking.BookingStatus.CANCELLED) {
+            throw new RuntimeException("This booking is already cancelled");
+        }
+        
+        if (booking.getStatus() == Booking.BookingStatus.REJECTED) {
+            throw new RuntimeException("Cannot cancel a rejected booking");
+        }
+
         booking.setStatus(Booking.BookingStatus.CANCELLED);
         bookingRepository.save(booking);
     }
@@ -104,7 +282,6 @@ public class BookingService {
         }
         
         Booking updatedBooking = bookingRepository.save(booking);
-
         return mapToResponseDTO(updatedBooking);
     }
 
@@ -123,6 +300,18 @@ public class BookingService {
     }
 
     private BookingResponseDTO mapToResponseDTO(Booking booking) {
+        List<String> additionalMembersList = new ArrayList<>();
+        if (booking.getAdditionalMembers() != null) {
+            try {
+                additionalMembersList = objectMapper.readValue(
+                    booking.getAdditionalMembers(), 
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, String.class)
+                );
+            } catch (JsonProcessingException e) {
+                // Ignore parsing errors
+            }
+        }
+        
         return new BookingResponseDTO(
                 booking.getId(),
                 booking.getStudentId(),
@@ -132,9 +321,13 @@ public class BookingService {
                 booking.getResource().getName(),
                 booking.getResource().getLocation(),
                 booking.getBookingDate(),
+                booking.getStartTime(),
+                booking.getEndTime(),
                 booking.getStatus().toString(),
                 booking.getPurpose(),
-                booking.getRejectionReason()
+                booking.getRejectionReason(),
+                booking.getSlotNumber(),
+                additionalMembersList
         );
     }
 }

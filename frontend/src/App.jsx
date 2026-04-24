@@ -17,6 +17,7 @@ import TicketForm from './pages/incidents/TicketForm';
 import Sidebar from './components/layout/Sidebar';
 import Profile from './pages/users/Profile';
 import AdminBookingRequests from './pages/facilities/AdminBookingRequests';
+import MyBookings from './pages/facilities/MyBookings';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -97,6 +98,12 @@ function AppContent() {
               </PrivateRoute>
             } />
 
+            <Route path="/mybookings" element={
+              <PrivateRoute>
+                <MyBookings />
+              </PrivateRoute>
+            } />
+
             <Route path="/incidents/:id" element={
               <PrivateRoute>
                 <TicketDetails />
@@ -154,8 +161,8 @@ function Home() {
         <div className="mt-16 border-t border-slate-200 pt-10">
             <h3 className="text-2xl font-bold text-slate-800 mb-6">Administrative Control</h3>
             <div className="flex flex-wrap justify-center gap-4">
-                <button onClick={() => window.location.href = '/admin/facilities'} className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-indigo-100 transition-all">
-                    Manage Facilities
+                <button onClick={() => window.location.href = '/admin/bookings'} className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-indigo-100 transition-all">
+                    Manage Facility Bookings
                 </button>
                 <button onClick={() => window.location.href = '/admin/analytics'} className="bg-fuchsia-600 hover:bg-fuchsia-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-fuchsia-100 transition-all">
                     Usage Analytics

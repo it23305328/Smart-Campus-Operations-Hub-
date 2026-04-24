@@ -1,3 +1,4 @@
+// bookingService.js
 import api from './api';
 
 const bookingService = {
@@ -22,6 +23,11 @@ const bookingService = {
 
     getBookingsByResourceId: async (resourceId) => {
         const response = await api.get(`/api/bookings/resource/${resourceId}`);
+        return response.data;
+    },
+
+    getAvailableSlots: async (resourceId) => {
+        const response = await api.get(`/api/bookings/resource/${resourceId}/availability`);
         return response.data;
     },
 

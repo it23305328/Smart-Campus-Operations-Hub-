@@ -8,7 +8,7 @@ const Navbar = () => {
     if (!user) return null;
 
     return (
-        <header className="bg-gradient-to-r from-blue-700 to-indigo-800 text-white p-6 shadow-xl relative z-20">
+        <header className="bg-gradient-to-r from-blue-700 to-indigo-800 text-white p-6 shadow-xl relative z-10">
             <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-4">
                 <Link to="/dashboard">
                     <h1 className="text-3xl font-extrabold tracking-tight">
@@ -23,7 +23,7 @@ const Navbar = () => {
                     {/* Role Based Navigation Links */}
                     {user.role === 'USER' && (
                         <>
-                            <Link to="/bookings" className="hover:text-blue-300 transition">Bookings</Link>
+                            <Link to="/mybookings" className="hover:text-blue-300 transition">Bookings</Link>
                             <Link to="/incidents" className="hover:text-blue-300 transition">Incident Reporting</Link>
                         </>
                     )}

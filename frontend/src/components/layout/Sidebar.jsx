@@ -24,7 +24,7 @@ const Sidebar = () => {
         ],
         USER: [
             { icon: Home, label: 'Dashboard', path: '/' },
-            { icon: Calendar, label: 'My Bookings', path: '/bookings' },
+            { icon: Calendar, label: 'My Bookings', path: '/mybookings' },
             { icon: Map, label: 'Facilities', path: '/facilities' },
             { icon: AlertTriangle, label: 'Report Incident', path: '/incidents' },
             { icon: Map, label: 'Catalogue', path: '/catalogue' },
