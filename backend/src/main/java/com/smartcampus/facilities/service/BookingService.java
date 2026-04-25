@@ -140,13 +140,15 @@ public class BookingService {
         }
 
         // Check for active booking
-        boolean hasActiveBooking = bookingRepository.existsByResourceIdAndStudentIdAndStatusIn(
+        // Check if student already has an active booking for this resource on the SAME DATE
+        boolean hasActiveBooking = bookingRepository.existsByResourceIdAndStudentIdAndDateAndStatusIn(
                 bookingRequest.getResourceId(), bookingRequest.getStudentId(),
+                reservationDate,
                 List.of(Booking.BookingStatus.PENDING, Booking.BookingStatus.APPROVED)
         );
         
         if (hasActiveBooking) {
-            throw new RuntimeException("You already have an active booking for this resource");
+            throw new RuntimeException("You already have a pending or approved booking for this resource on " + reservationDate);
         }
 
         // Clean up old inactive bookings

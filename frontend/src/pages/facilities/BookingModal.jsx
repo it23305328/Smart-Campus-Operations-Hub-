@@ -2,10 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { X, User, Phone, FileText, AlertCircle, Clock, Users, Calendar } from 'lucide-react';
 import bookingService from '../../services/bookingService';
+import { useAuth } from '../../context/AuthContext';
 import ConfirmationModal from './ConfirmationModal';
 
 const BookingModal = ({ isOpen, onClose, resource, onSuccess }) => {
-    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+    const { user: currentUser } = useAuth();
     
     // Get today's date in Sri Lanka timezone
     const getTodayDate = () => {
@@ -323,8 +324,13 @@ const BookingModal = ({ isOpen, onClose, resource, onSuccess }) => {
             console.error('Booking error:', error);
             let errorMessage = 'Failed to book resource. Please try again.';
             
-            if (error && error.message) {
+            if (typeof error === 'string') {
+                errorMessage = error;
+            } else if (error && error.message) {
                 errorMessage = error.message;
+            } else if (error && typeof error === 'object') {
+                // Handle complex error objects from axios
+                errorMessage = error.error || error.message || JSON.stringify(error);
             }
             
             setSubmitError(errorMessage);

@@ -15,10 +15,12 @@ import java.util.List;
 public interface BookingRepository extends JpaRepository<Booking, Long> {
     
     @Query("SELECT CASE WHEN COUNT(b) > 0 THEN true ELSE false END FROM Booking b " +
-           "WHERE b.resource.id = :resourceId AND b.studentId = :studentId AND b.status IN :statuses")
-    boolean existsByResourceIdAndStudentIdAndStatusIn(@Param("resourceId") Long resourceId, 
-                                                      @Param("studentId") String studentId,
-                                                      @Param("statuses") List<Booking.BookingStatus> statuses);
+           "WHERE b.resource.id = :resourceId AND b.studentId = :studentId " +
+           "AND b.reservationDate = :date AND b.status IN :statuses")
+    boolean existsByResourceIdAndStudentIdAndDateAndStatusIn(@Param("resourceId") Long resourceId, 
+                                                              @Param("studentId") String studentId,
+                                                              @Param("date") java.time.LocalDate date,
+                                                              @Param("statuses") List<Booking.BookingStatus> statuses);
     
     List<Booking> findByStudentId(String studentId);
     
@@ -63,6 +65,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     
     @Modifying
     @Query("UPDATE Booking b SET b.status = 'CANCELLED' WHERE b.status = 'APPROVED' " +
-           "AND b.reservationDate = :today AND b.endTime < :currentTime")
+           "AND (b.reservationDate < :today OR (b.reservationDate = :today AND b.endTime < :currentTime))")
     int expirePastBookings(@Param("today") LocalDate today, @Param("currentTime") LocalTime currentTime);
 }

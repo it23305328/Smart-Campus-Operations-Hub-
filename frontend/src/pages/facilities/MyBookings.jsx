@@ -18,6 +18,7 @@ import {
     History
 } from 'lucide-react';
 import ConfirmationModal from './ConfirmationModal';
+import { useAuth } from '../../context/AuthContext';
 import { motion } from 'framer-motion';
 
 const MyBookings = () => {
@@ -29,7 +30,7 @@ const MyBookings = () => {
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
     const [resourceDetails, setResourceDetails] = useState({});
     
-    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+    const { user: currentUser } = useAuth();
     
     const [confirmationModal, setConfirmationModal] = useState({
         isOpen: false,
