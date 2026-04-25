@@ -7,6 +7,7 @@ import com.smartcampus.notifications.repository.NotificationPreferenceRepository
 import com.smartcampus.notifications.repository.NotificationRepository;
 import com.smartcampus.users.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -17,6 +18,7 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final NotificationPreferenceRepository preferenceRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Transactional
     public void sendNotification(User recipient, String message, NotificationType type) {
@@ -41,7 +43,15 @@ public class NotificationService {
                     .message(message)
                     .type(type)
                     .build();
-            notificationRepository.save(notification);
+            Notification savedNotification = notificationRepository.save(notification);
+            
+            // Push via WebSocket to user-specific destination
+            // Using email as the destination identifier
+            messagingTemplate.convertAndSendToUser(
+                recipient.getEmail(),
+                "/queue/notifications",
+                savedNotification
+            );
         }
     }
 
