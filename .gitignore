@@ -11,13 +11,15 @@ frontend/dist/
 frontend/dist-ssr/
 frontend/*.local
 
-# env
+# env files (Keep these out of GitHub!)
 .env
 .env.local
 .env.*.local
 frontend/.env
 frontend/.env.local
 backend/.env
+# Added: general env for any subdirectory
+**/.env 
 
 # IDEs
 .idea/
@@ -25,3 +27,8 @@ backend/.env
 .vscode/
 *.swp
 .DS_Store
+
+# Spring Boot / Backend Specifics
+# We don't ignore application.properties usually, 
+# BUT we ignore the ones that contain real secrets.
+backend/src/main/resources/application.properties

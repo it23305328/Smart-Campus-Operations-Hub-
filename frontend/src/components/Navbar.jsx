@@ -15,12 +15,12 @@ const Navbar = () => {
         <header className="glass-glow sticky top-0 z-50 border-b border-blue-500/10 backdrop-blur-3xl transition-all duration-500">
             <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
                 <Link to="/dashboard" className="flex items-center gap-2 group">
-                    <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                    {/* <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                         <LayoutDashboard className="text-white w-5 h-5" />
                     </div>
                     <h1 className="text-xl font-space font-bold tracking-tight">
                         Smart Campus <span className="text-gradient font-black">Hub</span>
-                    </h1>
+                    </h1> */}
                 </Link>
                 
                 <nav className="flex items-center gap-4">
@@ -28,14 +28,14 @@ const Navbar = () => {
                         <NavLink to="/dashboard" label="Dashboard" />
                         {user.role === 'USER' && (
                             <>
-                                <NavLink to="/bookings" label="Bookings" />
+                                <NavLink to="/mybookings" label="Bookings" />
                                 <NavLink to="/incidents" label="Incidents" />
                             </>
                         )}
                         {user.role === 'ADMIN' && (
                             <>
                                 <NavLink to="/admin/users" label="Users" className="text-blue-500" />
-                                <NavLink to="/admin/bookings" label="Requests" />
+                                <NavLink to="/admin/bookings" label="All Bookings" />
                                 <NavLink to="/admin/analytics" label="Analytics" />
                             </>
                         )}

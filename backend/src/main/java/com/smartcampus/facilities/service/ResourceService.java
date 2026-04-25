@@ -6,6 +6,7 @@ import com.smartcampus.facilities.repository.ResourceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,13 +21,51 @@ public class ResourceService {
     }
 
     public List<Resource> getAllResources(String name, ResourceType type, String location, Integer minCapacity) {
+        List<Resource> resources;
         if (name == null && type == null && location == null && minCapacity == null) {
-            return resourceRepository.findAll();
+            resources = resourceRepository.findAll();
+        } else {
+            resources = resourceRepository.findWithFilters(name, type, location, minCapacity);
         }
-        return resourceRepository.findWithFilters(name, type, location, minCapacity);
+        
+        // Ensure all resources have default time values
+        for (Resource resource : resources) {
+            if (resource.getAvailableFrom() == null) {
+                resource.setAvailableFrom(LocalTime.of(8, 0));
+            }
+            if (resource.getAvailableTo() == null) {
+                resource.setAvailableTo(LocalTime.of(20, 0));
+            }
+        }
+        
+        return resources;
     }
 
     public Resource addResource(Resource resource) {
+        // Set default timings if not provided
+        if (resource.getAvailableFrom() == null) {
+            resource.setAvailableFrom(LocalTime.of(8, 0));
+        }
+        if (resource.getAvailableTo() == null) {
+            resource.setAvailableTo(LocalTime.of(20, 0));
+        }
+        
+        // For meeting rooms, set default slots
+        if (resource.getType() == ResourceType.MEETING_ROOM) {
+            resource.setHasSlots(true);
+            resource.setSlotDurationMinutes(120); // 2 hours
+            // Only set meeting room specific times if not explicitly set
+            if (resource.getAvailableFrom() == LocalTime.of(8, 0) || resource.getAvailableFrom() == null) {
+                resource.setAvailableFrom(LocalTime.of(9, 0)); // 9 AM
+            }
+            if (resource.getAvailableTo() == LocalTime.of(20, 0) || resource.getAvailableTo() == null) {
+                resource.setAvailableTo(LocalTime.of(19, 0)); // 7 PM
+            }
+        } else {
+            resource.setHasSlots(false);
+            resource.setSlotDurationMinutes(null);
+        }
+        
         return resourceRepository.save(resource);
     }
 
@@ -40,6 +79,28 @@ public class ResourceService {
         resource.setLocation(resourceDetails.getLocation());
         resource.setStatus(resourceDetails.getStatus());
         resource.setAvailabilityWindows(resourceDetails.getAvailabilityWindows());
+        
+        // Update timings if provided, otherwise keep existing
+        if (resourceDetails.getAvailableFrom() != null) {
+            resource.setAvailableFrom(resourceDetails.getAvailableFrom());
+        } else if (resource.getAvailableFrom() == null) {
+            resource.setAvailableFrom(LocalTime.of(8, 0));
+        }
+        
+        if (resourceDetails.getAvailableTo() != null) {
+            resource.setAvailableTo(resourceDetails.getAvailableTo());
+        } else if (resource.getAvailableTo() == null) {
+            resource.setAvailableTo(LocalTime.of(20, 0));
+        }
+        
+        // For meeting rooms
+        if (resourceDetails.getType() == ResourceType.MEETING_ROOM) {
+            resource.setHasSlots(true);
+            resource.setSlotDurationMinutes(120);
+        } else {
+            resource.setHasSlots(false);
+            resource.setSlotDurationMinutes(null);
+        }
 
         return resourceRepository.save(resource);
     }
@@ -51,7 +112,16 @@ public class ResourceService {
     }
 
     public Optional<Resource> getResourceById(Long id) {
-        return resourceRepository.findById(id);
+        Optional<Resource> resourceOpt = resourceRepository.findById(id);
+        resourceOpt.ifPresent(resource -> {
+            if (resource.getAvailableFrom() == null) {
+                resource.setAvailableFrom(LocalTime.of(8, 0));
+            }
+            if (resource.getAvailableTo() == null) {
+                resource.setAvailableTo(LocalTime.of(20, 0));
+            }
+        });
+        return resourceOpt;
     }
 
     public List<com.smartcampus.facilities.dto.TopResourceDTO> getTopResources() {
@@ -64,5 +134,6 @@ public class ResourceService {
         metrics.put("activeResources", resourceRepository.countByStatus(Resource.ResourceStatus.ACTIVE));
         metrics.put("outOfServiceResources", resourceRepository.countByStatus(Resource.ResourceStatus.OUT_OF_SERVICE));
         return metrics;
+    }
     }
 }

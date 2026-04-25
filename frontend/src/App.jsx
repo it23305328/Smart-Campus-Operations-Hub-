@@ -18,6 +18,8 @@ import TicketForm from './pages/incidents/TicketForm';
 import Sidebar from './components/layout/Sidebar';
 import Profile from './pages/users/Profile';
 import UserDashboard from './pages/UserDashboard';
+import AdminBookingRequests from './pages/facilities/AdminBookingRequests';
+import MyBookings from './pages/facilities/MyBookings';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -88,6 +90,11 @@ function AppContent() {
               </ProtectedRoute>
             } />
 
+            <Route path="/admin/bookings" element={
+              <ProtectedRoute roles={['ADMIN']}>
+                <AdminBookingRequests />
+              </ProtectedRoute>
+            } />
             <Route path="/admin/analytics" element={
               <ProtectedRoute roles={['ADMIN']}>
                 <AnalyticsDashboard />
@@ -100,6 +107,11 @@ function AppContent() {
               </PrivateRoute>
             } />
 
+            <Route path="/mybookings" element={
+              <PrivateRoute>
+                <MyBookings />
+              </PrivateRoute>
+            } />
             <Route path="/incidents/:id" element={
               <PrivateRoute>
                 <TicketDetails />
