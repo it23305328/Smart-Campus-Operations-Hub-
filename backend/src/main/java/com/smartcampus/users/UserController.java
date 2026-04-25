@@ -2,7 +2,6 @@ package com.smartcampus.users;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,18 +28,23 @@ public class UserController {
 
         Object principal = authentication.getPrincipal();
 
-        if (principal instanceof User) {
-            return ResponseEntity.ok((User) principal);
+        if (principal instanceof User user) {
+            return ResponseEntity.ok(user);
         }
 
-        if (principal instanceof OAuth2User) {
-            OAuth2User oauth2User = (OAuth2User) principal;
+        if (principal instanceof OAuth2User oauth2User) {
             String email = oauth2User.getAttribute("email");
-            return userRepository.findByEmail(email)
-                    .map(user -> ResponseEntity.ok((Object) user))
-                    .orElse(ResponseEntity.ok(oauth2User.getAttributes()));
+            if (email != null) {
+                User user = userRepository.findByEmail(email).orElse(null);
+                if (user != null) {
+                    return ResponseEntity.ok(user);
+                }
+            }
+            // Fallback to raw OAuth2 attributes if User not found
+            return ResponseEntity.ok(oauth2User.getAttributes());
         }
 
+        // Generic fallback
         return ResponseEntity.ok(principal);
     }
 }

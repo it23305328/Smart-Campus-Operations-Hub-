@@ -34,20 +34,14 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(authz -> authz
-                .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/", "/v3/api-docs/**", "/swagger-ui/**", "/login**", "/api/auth/**").permitAll()
-                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/resources/**").authenticated()
-                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/resources/**").hasAnyRole("ADMIN", "USER")
-                .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/resources/**").hasAnyRole("ADMIN", "USER")
-                .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/resources/**").hasAnyRole("ADMIN", "USER")
-                .requestMatchers("/api/analytics/**").hasAnyRole("ADMIN", "USER")
                 .anyRequest().authenticated()
             )
             .oauth2Login(oauth2 -> oauth2
                 .userInfoEndpoint(userInfo -> userInfo
                         .userService(customOAuth2UserService)
                 )
-                .defaultSuccessUrl("http://localhost:3000/dashboard", true)
+            .defaultSuccessUrl("http://localhost:3000/dashboard", true)
             );
         return http.build();
     }
@@ -55,9 +49,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://localhost:5173")); // Vite dev server ports
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://localhost:3000")); // Vite default and user port
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
