@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { User, Mail, Phone, Shield, Camera, Save, Globe } from 'lucide-react';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { motion } from 'framer-motion';
 
 const Profile = () => {
     const { user: authUser } = useAuth();
@@ -44,19 +45,30 @@ const Profile = () => {
     };
 
     if (loading) return (
-        <div className="flex justify-center items-center h-screen bg-slate-50">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        <div className="flex justify-center items-center h-screen">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
         </div>
     );
 
     return (
-        <div className="min-h-screen bg-slate-50 p-6 md:p-10">
-            <div className="max-w-4xl mx-auto">
-                <div className="bg-white rounded-[3rem] shadow-2xl shadow-slate-200 overflow-hidden border border-slate-100">
-                    <div className="h-48 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 relative">
+        <div className="min-h-screen pt-4 pb-20">
+            {/* Mesh Background (Shared) */}
+            <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 dark:bg-blue-600/20 blur-[120px] rounded-full animate-pulse" />
+                <div className="absolute bottom-[10%] right-[-5%] w-[35%] h-[35%] bg-purple-600/10 dark:bg-purple-600/20 blur-[120px] rounded-full animate-pulse" style={{ animationDelay: '2s' }} />
+                <div className="absolute top-[40%] left-[60%] w-[25%] h-[25%] bg-blue-400/5 dark:bg-blue-400/10 blur-[100px] rounded-full" />
+            </div>
+
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="glass-glow rounded-3xl overflow-hidden border border-border"
+                >
+                    <div className="h-48 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-700 relative">
                         <div className="absolute -bottom-16 left-12">
-                            <div className="w-32 h-32 rounded-[2.5rem] bg-white p-2 shadow-xl shadow-indigo-100 rotate-3">
-                                <div className="w-full h-full rounded-[2rem] bg-slate-800 flex items-center justify-center text-white font-black text-4xl -rotate-3 overflow-hidden">
+                            <div className="w-32 h-32 rounded-[2.5rem] bg-background p-2 shadow-xl shadow-blue-500/20 rotate-3 border border-border">
+                                <div className="w-full h-full rounded-[2rem] bg-blue-500/10 flex items-center justify-center text-blue-500 font-black text-4xl -rotate-3 overflow-hidden border border-blue-500/20">
                                     {authUser?.picture ? (
                                         <img src={authUser.picture} alt="profile" className="w-full h-full object-cover" />
                                     ) : (
@@ -70,13 +82,17 @@ const Profile = () => {
                     <div className="pt-24 px-12 pb-16">
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
                             <div>
-                                <h1 className="text-4xl font-black text-slate-900 tracking-tight">{profile?.name}</h1>
+                                <h1 className="text-4xl font-black font-space text-foreground tracking-tight">{profile?.name}</h1>
                                 <div className="flex items-center gap-4 mt-2">
-                                    <span className="flex items-center gap-1.5 px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-xs font-black tracking-widest uppercase">
+                                    <span className="flex items-center gap-1.5 px-3 py-1 bg-blue-500/10 text-blue-500 rounded-full text-xs font-black tracking-widest uppercase border border-blue-500/20">
                                         <Shield className="w-3 h-3" />
                                         {profile?.role}
                                     </span>
-                                    <span className={`px-3 py-1 rounded-full text-xs font-black tracking-widest uppercase ${profile?.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
+                                    <span className={`px-3 py-1 rounded-full text-xs font-black tracking-widest uppercase border ${
+                                        profile?.status === 'ACTIVE' 
+                                            ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' 
+                                            : 'bg-red-500/10 text-red-500 border-red-500/20'
+                                    }`}>
                                         {profile?.status}
                                     </span>
                                 </div>
@@ -85,7 +101,7 @@ const Profile = () => {
                             {!isEditing ? (
                                 <button 
                                     onClick={() => setIsEditing(true)}
-                                    className="px-8 py-4 bg-slate-900 text-white rounded-2xl font-black text-sm shadow-xl shadow-slate-200 transition-all hover:-translate-y-1 active:scale-95"
+                                    className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-bold text-sm shadow-xl shadow-blue-500/20 transition-all hover:-translate-y-1 active:scale-95 border border-blue-500/20"
                                 >
                                     Edit Details
                                 </button>
@@ -93,14 +109,14 @@ const Profile = () => {
                                 <div className="flex gap-3">
                                     <button 
                                         onClick={() => setIsEditing(false)}
-                                        className="px-6 py-4 bg-slate-100 text-slate-600 rounded-2xl font-black text-sm transition-all"
+                                        className="px-6 py-4 bg-white/10 text-foreground rounded-2xl font-bold text-sm transition-all border border-border hover:bg-white/20"
                                     >
                                         Cancel
                                     </button>
                                     <button 
                                         onClick={handleUpdate}
                                         disabled={updating}
-                                        className="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black text-sm shadow-xl shadow-indigo-100 transition-all hover:bg-indigo-700 flex items-center gap-2"
+                                        className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-bold text-sm shadow-xl shadow-blue-500/20 transition-all hover:bg-blue-700 flex items-center gap-2 border border-blue-500/20"
                                     >
                                         <Save className="w-4 h-4" />
                                         {updating ? 'Saving...' : 'Save Changes'}
@@ -112,30 +128,30 @@ const Profile = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                             <div className="space-y-8">
                                 <div className="space-y-3">
-                                    <label className="text-[10px] font-black text-slate-400 tracking-[0.2em] uppercase ml-1">Email Address</label>
-                                    <div className="flex items-center gap-4 p-5 bg-slate-50 border border-slate-100 rounded-2xl">
-                                        <Mail className="w-5 h-5 text-indigo-400" />
-                                        <span className="font-bold text-slate-600">{profile?.email}</span>
+                                    <label className="text-[10px] font-black text-muted-foreground tracking-[0.2em] uppercase ml-1">Email Address</label>
+                                    <div className="flex items-center gap-4 p-5 bg-white/5 border border-border rounded-2xl">
+                                        <Mail className="w-5 h-5 text-blue-400" />
+                                        <span className="font-bold text-foreground">{profile?.email}</span>
                                     </div>
                                 </div>
 
                                 <div className="space-y-3">
-                                    <label className="text-[10px] font-black text-slate-400 tracking-[0.2em] uppercase ml-1">Contact Phone</label>
+                                    <label className="text-[10px] font-black text-muted-foreground tracking-[0.2em] uppercase ml-1">Contact Phone</label>
                                     {isEditing ? (
                                         <div className="relative">
-                                            <Phone className="absolute left-5 top-1/2 -translate-y-1/2 text-indigo-400 w-5 h-5" />
+                                            <Phone className="absolute left-5 top-1/2 -translate-y-1/2 text-blue-400 w-5 h-5" />
                                             <input 
                                                 type="text" 
                                                 value={phoneNumber} 
                                                 onChange={(e) => setPhoneNumber(e.target.value)}
-                                                className="w-full pl-14 pr-5 py-5 bg-white border-2 border-indigo-100 rounded-2xl focus:border-indigo-600 outline-none transition-all font-bold"
+                                                className="w-full pl-14 pr-5 py-5 bg-white/5 border-2 border-blue-500/20 rounded-2xl focus:border-blue-500 outline-none transition-all font-bold text-foreground placeholder:text-muted-foreground"
                                                 placeholder="Enter phone number..."
                                             />
                                         </div>
                                     ) : (
-                                        <div className="flex items-center gap-4 p-5 bg-slate-50 border border-slate-100 rounded-2xl">
-                                            <Phone className="w-5 h-5 text-indigo-400" />
-                                            <span className="font-bold text-slate-600">{profile?.phoneNumber || 'No phone set'}</span>
+                                        <div className="flex items-center gap-4 p-5 bg-white/5 border border-border rounded-2xl">
+                                            <Phone className="w-5 h-5 text-blue-400" />
+                                            <span className="font-bold text-foreground">{profile?.phoneNumber || 'No phone set'}</span>
                                         </div>
                                     )}
                                 </div>
@@ -143,19 +159,19 @@ const Profile = () => {
 
                             <div className="space-y-8">
                                 <div className="space-y-3">
-                                    <label className="text-[10px] font-black text-slate-400 tracking-[0.2em] uppercase ml-1">Security Audit</label>
-                                    <div className="p-8 bg-slate-900 text-white rounded-3xl space-y-6">
-                                        <div className="flex justify-between items-center bg-white/5 p-4 rounded-xl">
-                                            <span className="text-xs font-bold text-slate-400">Last Login IP</span>
-                                            <span className="text-xs font-black text-indigo-300">{profile?.ipAddress || 'Not recorded'}</span>
+                                    <label className="text-[10px] font-black text-muted-foreground tracking-[0.2em] uppercase ml-1">Security Audit</label>
+                                    <div className="p-8 bg-foreground/5 text-foreground rounded-3xl space-y-6 border border-border">
+                                        <div className="flex justify-between items-center bg-white/5 p-4 rounded-xl border border-border">
+                                            <span className="text-xs font-bold text-muted-foreground">Last Login IP</span>
+                                            <span className="text-xs font-bold text-blue-400">{profile?.ipAddress || 'Not recorded'}</span>
                                         </div>
-                                        <div className="flex justify-between items-center bg-white/5 p-4 rounded-xl">
-                                            <span className="text-xs font-bold text-slate-400">Last Activity</span>
-                                            <span className="text-xs font-black text-indigo-300">
+                                        <div className="flex justify-between items-center bg-white/5 p-4 rounded-xl border border-border">
+                                            <span className="text-xs font-bold text-muted-foreground">Last Activity</span>
+                                            <span className="text-xs font-bold text-blue-400">
                                                 {profile?.lastLogin ? new Date(profile.lastLogin).toLocaleString() : 'N/A'}
                                             </span>
                                         </div>
-                                        <div className="flex items-center gap-2 text-rose-400 bg-rose-400/10 p-4 rounded-xl">
+                                        <div className="flex items-center gap-2 text-red-400 bg-red-500/10 p-4 rounded-xl border border-red-500/20">
                                             <Globe className="w-4 h-4" />
                                             <span className="text-[10px] font-black uppercase tracking-widest">Active Session Verified</span>
                                         </div>
@@ -164,7 +180,7 @@ const Profile = () => {
                             </div>
                         </div>
                     </div>
-                </div>
+                </motion.div>
             </div>
         </div>
     );

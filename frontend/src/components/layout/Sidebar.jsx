@@ -1,16 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
     Home, Users, Map, 
     Calendar, BarChart, Bell, 
     User, AlertTriangle, ClipboardList,
-    LogOut
+    LogOut, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const Sidebar = () => {
     const { user, logout } = useAuth();
     const role = user?.role || 'USER';
+    const [isExpanded, setIsExpanded] = useState(true);
 
     const menuItems = {
         ADMIN: [
@@ -27,7 +28,7 @@ const Sidebar = () => {
             { icon: Calendar, label: 'My Bookings', path: '/mybookings' },
             { icon: Map, label: 'Facilities', path: '/facilities' },
             { icon: AlertTriangle, label: 'Report Incident', path: '/incidents' },
-            { icon: Map, label: 'Catalogue', path: '/catalogue' },
+            // { icon: Map, label: 'Catalogue', path: '/catalogue' },
             { icon: User, label: 'Profile', path: '/profile' },
         ],
         TECHNICIAN: [
@@ -40,54 +41,79 @@ const Sidebar = () => {
     const currentMenu = menuItems[role] || menuItems.USER;
 
     return (
-        <div className="w-80 h-full bg-slate-900 text-white flex flex-col shadow-2xl overflow-y-auto">
-            <div className="p-10">
-                <div className="flex items-center gap-4 mb-10">
-                    <div className="w-12 h-12 bg-indigo-500 rounded-2xl rotate-3 flex items-center justify-center shadow-lg shadow-indigo-500/50">
-                        <Home className="w-6 h-6 text-white" />
+        <div 
+            className={`h-screen sticky top-0 bg-background border-r border-border flex flex-col shadow-2xl transition-all duration-300 ease-in-out overflow-y-auto ${
+                isExpanded ? 'w-80' : 'w-20'
+            }`}
+        >
+            <div className="p-6">
+                <div className={`flex items-center gap-4 mb-10 ${!isExpanded && 'justify-center'}`}>
+                    <div className="w-10 h-10 bg-blue-500 rounded-xl rotate-3 flex items-center justify-center shadow-lg shadow-blue-500/50 flex-shrink-0">
+                        <Home className="w-5 h-5 text-white" />
                     </div>
-                    <div>
-                        <h2 className="text-xl font-black tracking-tighter">SMART CAMPUS</h2>
-                        <p className="text-[10px] font-black text-indigo-400 tracking-[0.3em] uppercase opacity-60">Operations Hub</p>
-                    </div>
+                    {isExpanded && (
+                        <div>
+                            <h2 className="text-xl font-black font-space tracking-tighter text-foreground">SMART CAMPUS</h2>
+                            <p className="text-[10px] font-black text-blue-400 tracking-[0.3em] uppercase">Operations Hub</p>
+                        </div>
+                    )}
                 </div>
 
                 <nav className="space-y-3">
-                    <p className="text-[10px] font-black text-slate-500 tracking-[0.2em] uppercase mb-5 ml-2">Navigation</p>
+                    {isExpanded && (
+                        <p className="text-[10px] font-black text-muted-foreground tracking-[0.2em] uppercase mb-5 ml-2">Navigation</p>
+                    )}
                     {currentMenu.map((item, idx) => (
                         <NavLink
                             key={idx}
                             to={item.path}
                             className={({ isActive }) => `
-                                flex items-center gap-4 px-6 py-4 rounded-2xl font-black text-sm transition-all duration-300
+                                flex items-center gap-4 px-4 py-3 rounded-xl font-bold text-sm transition-all duration-300
+                                ${isExpanded ? 'justify-start' : 'justify-center'}
                                 ${isActive 
-                                    ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-900/40 translate-x-1' 
-                                    : 'text-slate-400 hover:bg-slate-800 hover:text-white'}
+                                    ? 'bg-blue-600 text-white shadow-xl shadow-blue-500/20' 
+                                    : 'text-muted-foreground hover:bg-white/5 hover:text-foreground'}
                             `}
+                            title={!isExpanded ? item.label : ''}
                         >
-                            <item.icon className="w-5 h-5" />
-                            {item.label}
+                            <item.icon className="w-5 h-5 flex-shrink-0" />
+                            {isExpanded && <span>{item.label}</span>}
                         </NavLink>
                     ))}
                 </nav>
             </div>
 
-            <div className="mt-auto p-10 border-t border-slate-800 bg-slate-950/50">
-                <div className="flex items-center gap-4 mb-8">
-                    <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center font-black text-indigo-400">
+            <div className={`mt-auto p-6 border-t border-border bg-white/5 ${!isExpanded && 'flex flex-col items-center'}`}>
+                <div className={`flex items-center gap-4 mb-8 ${!isExpanded && 'justify-center'}`}>
+                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center font-bold text-blue-500 flex-shrink-0 border border-blue-500/20">
                         {user?.name?.charAt(0) || 'U'}
                     </div>
-                    <div className="overflow-hidden">
-                        <p className="font-black text-xs truncate uppercase tracking-wider">{user?.name}</p>
-                        <p className="text-[10px] font-bold text-slate-500 truncate">{user?.role}</p>
-                    </div>
+                    {isExpanded && (
+                        <div className="overflow-hidden">
+                            <p className="font-bold text-xs truncate uppercase tracking-wider text-foreground">{user?.name}</p>
+                            <p className="text-[10px] font-bold text-muted-foreground truncate">{user?.role}</p>
+                        </div>
+                    )}
                 </div>
+                
                 <button 
                     onClick={logout}
-                    className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-black text-sm text-rose-400 hover:bg-rose-500/10 transition-all border border-rose-500/20"
+                    className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl font-bold text-sm text-red-400 hover:bg-red-500/10 transition-all border border-red-500/20 ${!isExpanded && 'justify-center'}`}
+                    title={!isExpanded ? 'Sign Out' : ''}
                 >
-                    <LogOut className="w-5 h-5" />
-                    Sign Out
+                    <LogOut className="w-5 h-5 flex-shrink-0" />
+                    {isExpanded && <span>Sign Out</span>}
+                </button>
+
+                <button
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    className="absolute -right-3 top-20 bg-background rounded-full p-1 border border-border hover:bg-blue-600 transition-colors shadow-lg"
+                >
+                    {isExpanded ? (
+                        <ChevronLeft className="w-4 h-4 text-foreground" />
+                    ) : (
+                        <ChevronRight className="w-4 h-4 text-foreground" />
+                    )}
                 </button>
             </div>
         </div>
