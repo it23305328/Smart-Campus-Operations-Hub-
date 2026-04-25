@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
 
 const useNotifications = () => {
     const { user } = useAuth();
@@ -23,21 +24,30 @@ const useNotifications = () => {
             console.log('Connected to Notification WebSocket');
             
             // Subscribe to user-specific notification queue
-            // Spring's /user prefix maps to the authenticated user's session
             stompClient.subscribe(`/user/queue/notifications`, (message) => {
                 const newNotification = JSON.parse(message.body);
-                console.log('Received real-time notification:', newNotification);
-                
                 setNotifications(prev => [newNotification, ...prev]);
                 setUnreadCount(prev => prev + 1);
             });
         }, (error) => {
             console.error('WebSocket Connection Error:', error);
-            // Optional: Implement reconnection logic here
         });
 
+        // Initial fetch of notifications
+        const fetchInitialNotifications = async () => {
+            try {
+                const response = await api.get('/api/notifications');
+                setNotifications(response.data);
+                setUnreadCount(response.data.filter(n => !n.isRead).length);
+            } catch (err) {
+                console.error('Failed to fetch initial notifications:', err);
+            }
+        };
+
+        fetchInitialNotifications();
+
         return () => {
-            if (stompClientRef.current) {
+            if (stompClientRef.current && stompClientRef.current.connected) {
                 stompClientRef.current.disconnect(() => {
                     console.log('Disconnected from Notification WebSocket');
                 });

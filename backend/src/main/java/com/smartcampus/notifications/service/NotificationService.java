@@ -93,9 +93,9 @@ public class NotificationService {
         NotificationPreference prefs = preferenceRepository.findByUser(user)
                 .orElseGet(() -> NotificationPreference.builder().user(user).build());
         
-        prefs.setBookingEnabled(newPrefs.isBookingEnabled());
-        prefs.setTicketEnabled(newPrefs.isTicketEnabled());
-        prefs.setCommentEnabled(newPrefs.isCommentEnabled());
+        prefs.setEnableBookingNotifications(newPrefs.isEnableBookingNotifications());
+        prefs.setEnableTicketNotifications(newPrefs.isEnableTicketNotifications());
+        prefs.setEnableCommentNotifications(newPrefs.isEnableCommentNotifications());
         
         return preferenceRepository.save(prefs);
     }
