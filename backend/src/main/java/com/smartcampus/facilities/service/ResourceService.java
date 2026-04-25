@@ -135,5 +135,4 @@ public class ResourceService {
         metrics.put("outOfServiceResources", resourceRepository.countByStatus(Resource.ResourceStatus.OUT_OF_SERVICE));
         return metrics;
     }
-    }
 }
