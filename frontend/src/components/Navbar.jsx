@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Moon, Sun, LogOut, LayoutDashboard } from 'lucide-react';
+import NotificationPanel from './notifications/NotificationPanel';
 
 const Navbar = () => {
     const { user, logout } = useAuth();
@@ -58,6 +59,8 @@ const Navbar = () => {
                                 )}
                             </AnimatePresence>
                         </button>
+
+                        <NotificationPanel />
 
                         <div className="hidden sm:flex flex-col items-end mr-2">
                             <span className="text-xs font-bold text-foreground leading-none">{user.name}</span>
