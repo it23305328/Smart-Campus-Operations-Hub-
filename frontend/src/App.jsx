@@ -1,9 +1,10 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import LandingPage from './pages/LandingPage';
+import GuestDashboard from './pages/GuestDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
 import AdminDashboard from './pages/AdminDashboard';
@@ -16,6 +17,7 @@ import TicketDetails from './pages/incidents/TicketDetails';
 import TicketForm from './pages/incidents/TicketForm';
 import Sidebar from './components/layout/Sidebar';
 import Profile from './pages/users/Profile';
+import UserDashboard from './pages/UserDashboard';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -23,31 +25,39 @@ const PrivateRoute = ({ children }) => {
   return user ? children : <Navigate to="/login" />;
 };
 
+import { ThemeProvider } from './context/ThemeContext';
+
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <AppContent />
-      </BrowserRouter>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <AppContent />
+        </BrowserRouter>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
+
 function AppContent() {
   const { user } = useAuth();
+  const location = useLocation();
+
+  const isLandingPage = !user && location.pathname === '/';
 
   return (
-    <div className="min-h-screen flex font-sans">
+    <div className={`min-h-screen flex font-sans bg-background text-foreground transition-colors duration-500`}>
       {user && <Sidebar />}
       
-      <div className="flex-grow flex flex-col min-w-0 bg-slate-50 relative">
-        <Navbar />
-        <main className="flex-grow relative overflow-y-auto">
-          <div className="absolute inset-0 bg-grid-slate-200 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] bg-[length:20px_20px] pointer-events-none"></div>
-          <div className="max-w-7xl mx-auto p-8 relative z-10">
+      <div className="flex-grow flex flex-col min-w-0 relative">
+        {!isLandingPage && <Navbar />}
+        <main className={`flex-grow relative ${!isLandingPage ? 'overflow-y-auto' : ''}`}>
+          {!isLandingPage && <div className="absolute inset-0 bg-grid-slate-200 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] bg-[length:20px_20px] pointer-events-none"></div>}
+          <div className={`${!isLandingPage ? 'max-w-7xl mx-auto p-8 relative z-10' : ''}`}>
           <Routes>
             {/* Logic from Version 1 */}
-            <Route path="/" element={user ? <Navigate to="/dashboard" /> : <LandingPage />} />
+            <Route path="/" element={user ? <Navigate to="/dashboard" /> : <GuestDashboard />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/loginSuccess" element={<Navigate to="/dashboard" />} />
@@ -56,7 +66,7 @@ function AppContent() {
             {/* Dashboard and Admin Routes */}
             <Route path="/dashboard" element={
               <PrivateRoute>
-                <Home />
+                <UserDashboard />
               </PrivateRoute>
             } />
 
@@ -114,64 +124,4 @@ function AppContent() {
     </div>
   </div>
 );
-}
-
-function Home() {
-  const { user } = useAuth();
-  const navigate = React.useMemo(() => (path) => window.location.pathname = path, []); // Basic navigation for non-router context if needed, but we are inside Router
-
-  return (
-    <div className="text-center py-10">
-      <h2 className="text-4xl font-black text-slate-800 mb-6 drop-shadow-sm">Welcome to your Operations Dashboard</h2>
-      <p className="text-lg text-slate-500 mb-12 max-w-2xl mx-auto">
-        Logged in as <span className="font-bold text-indigo-600">{user?.role}</span>.
-        Select a system module below to jump into the control center.
-      </p>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-        <div onClick={() => window.location.href = '/facilities'}>
-          <ModuleCard title="Facilities" description="Monitor room status, manage assets and track equipment." color="from-teal-400 to-emerald-500" icon="🏢" />
-        </div>
-        <div onClick={() => window.location.href = '/bookings'}>
-          <ModuleCard title="Bookings" description="Handle schedule requests and approve venue reservations." color="from-sky-400 to-blue-500" icon="📅" />
-        </div>
-        <div onClick={() => window.location.href = '/incidents'}>
-          <ModuleCard title="Incidents" description="Review reported faults and assign field staff." color="from-rose-400 to-red-500" icon="🚨" />
-        </div>
-        <div onClick={() => window.location.href = '/notifications'}>
-          <ModuleCard title="Notifications" description="Broadcast alerts and manage subscriber preferences." color="from-amber-400 to-orange-500" icon="🔔" />
-        </div>
-      </div>
-
-      {user?.role === 'ADMIN' && (
-        <div className="mt-16 border-t border-slate-200 pt-10">
-            <h3 className="text-2xl font-bold text-slate-800 mb-6">Administrative Control</h3>
-            <div className="flex flex-wrap justify-center gap-4">
-                <button onClick={() => window.location.href = '/admin/facilities'} className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-indigo-100 transition-all">
-                    Manage Facilities
-                </button>
-                <button onClick={() => window.location.href = '/admin/analytics'} className="bg-fuchsia-600 hover:bg-fuchsia-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-fuchsia-100 transition-all">
-                    Usage Analytics
-                </button>
-                <button onClick={() => window.location.href = '/incidents'} className="bg-rose-600 hover:bg-rose-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-rose-100 transition-all">
-                    Manage Tickets
-                </button>
-                <button onClick={() => window.location.href = '/admin/users'} className="bg-slate-800 hover:bg-slate-900 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-slate-100 transition-all">
-                    Manage Users
-                </button>
-            </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function ModuleCard({ title, description, color, icon }) {
-  return (
-    <div className={`relative overflow-hidden group p-8 rounded-2xl text-white shadow-lg bg-gradient-to-br ${color} transition-all hover:-translate-y-2 cursor-pointer`}>
-      <div className="text-5xl mb-4">{icon}</div>
-      <h3 className="text-2xl font-bold mb-3">{title}</h3>
-      <p className="text-white/90 text-sm">{description}</p>
-    </div>
-  );
 }
