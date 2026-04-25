@@ -93,142 +93,162 @@ const UserDashboard = () => {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="grid grid-cols-1 md:grid-cols-3 gap-6"
+          className="grid grid-cols-1 md:grid-cols-4 gap-6"
         >
-          {/* Profile Card */}
+          {/* Profile Card - Enhanced */}
           <motion.div 
             variants={itemVariants}
-            className="md:col-span-1 glass-glow rounded-3xl p-6 border border-border flex flex-col items-center text-center group glow-border"
+            className="md:col-span-1 glass-glow rounded-[2rem] p-8 border border-white/10 flex flex-col items-center text-center group relative overflow-hidden shadow-2xl"
           >
-            <div className="relative mb-4">
-              <div className="absolute inset-0 bg-blue-500 rounded-full blur-xl opacity-20 group-hover:opacity-40 transition-opacity" />
-              {user?.avatar ? (
-                <img src={user.avatar} alt="Profile" className="w-24 h-24 rounded-full border-2 border-blue-500/50 relative z-10" />
-              ) : (
-                <div className="w-24 h-24 rounded-full bg-blue-500/5 border-2 border-blue-500/30 flex items-center justify-center relative z-10 shadow-[0_0_30px_rgba(59,130,246,0.1)]">
-                  <User className="w-12 h-12 text-blue-500" />
+            <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-r from-blue-600/20 to-purple-600/20 blur-2xl -z-10 group-hover:opacity-100 opacity-50 transition-opacity" />
+            
+            <div className="relative mb-6">
+              <div className="absolute inset-0 bg-blue-500 rounded-full blur-2xl opacity-20 group-hover:opacity-50 transition-all duration-500 scale-125" />
+              <div className="relative w-28 h-28 p-1 rounded-full bg-gradient-to-tr from-blue-500 via-purple-500 to-emerald-500 z-10 animate-spin-slow">
+                <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center overflow-hidden p-1">
+                  {user?.avatar ? (
+                    <img src={user.avatar} alt="Profile" className="w-full h-full rounded-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full rounded-full bg-blue-500/5 flex items-center justify-center">
+                      <User className="w-12 h-12 text-blue-500" />
+                    </div>
+                  )}
                 </div>
-              )}
-              <div className="absolute bottom-1 right-1 w-6 h-6 bg-emerald-500 border-4 border-background rounded-full z-20" />
+              </div>
+              <div className="absolute bottom-2 right-2 w-5 h-5 bg-emerald-500 border-4 border-slate-900 rounded-full z-20 shadow-lg" />
             </div>
-            <h2 className="text-xl font-bold font-space">{user?.name || 'User Name'}</h2>
-            <p className="text-sm text-muted-foreground mb-4">{user?.email || 'user@campus.edu'}</p>
-            <div className="flex gap-2">
-              <span className="px-3 py-1 bg-blue-500/10 text-blue-500 text-[10px] font-bold uppercase tracking-widest rounded-full border border-blue-500/20">
+            
+            <h2 className="text-2xl font-black font-space tracking-tight mb-1 text-slate-900 dark:text-white">{user?.name || 'Academic'}</h2>
+            <p className="text-sm text-muted-foreground font-medium mb-6">{user?.email || 'user@campus.edu'}</p>
+            
+            <div className="flex flex-wrap justify-center gap-2">
+              <span className="px-4 py-1.5 bg-blue-600 shadow-lg shadow-blue-600/30 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-full">
                 {user?.role || 'STUDENT'}
               </span>
-              <span className="px-3 py-1 bg-emerald-500/10 text-emerald-500 text-[10px] font-bold uppercase tracking-widest rounded-full border border-emerald-500/20">
-                Active
+              <span className="px-4 py-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[10px] font-black uppercase tracking-[0.2em] rounded-full">
+                ACTIVE
               </span>
             </div>
-          </motion.div>
+          </motion.div> 
 
-          {/* Quick Actions */}
+          {/* Quick Actions - Revamped */}
           <motion.div 
             variants={itemVariants}
-            className="md:col-span-2 glass-glow rounded-3xl p-8 border border-border flex flex-col justify-center gap-6 glow-border"
+            className="md:col-span-3 glass-glow rounded-[2rem] p-8 border border-white/5 flex flex-col justify-center gap-8 relative overflow-hidden"
           >
-            <h3 className="text-lg font-bold font-space flex items-center gap-2">
-              <PlusCircle className="w-5 h-5 text-blue-500" />
-              Quick Operations
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-black font-space flex items-center gap-3 text-slate-900 dark:text-white">
+                <div className="p-2 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                  <PlusCircle className="w-5 h-5 text-blue-500" />
+                </div>
+                Quick Operations
+              </h3>
+              <div className="text-xs font-bold text-blue-500 uppercase tracking-widest cursor-pointer hover:text-blue-400 transition-colors">Configure Layout</div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <button 
                 onClick={() => navigate('/facilities')}
-                className="group relative p-6 bg-blue-600/10 hover:bg-blue-600 transition-all rounded-2xl border border-blue-500/20 text-left overflow-hidden shadow-lg shadow-blue-500/5"
+                className="group relative p-8 rounded-3xl bg-slate-900 border border-white/5 text-left overflow-hidden transition-all hover:scale-[1.02] active:scale-[0.98] shadow-2xl"
               >
-                <div className="absolute top-[-20%] right-[-10%] opacity-5 group-hover:opacity-10 transition-opacity">
-                  <Calendar className="w-24 h-24 rotate-12" />
+                <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-cyan-600 blur opacity-0 group-hover:opacity-20 transition duration-500" />
+                <div className="absolute top-[-20%] right-[-10%] opacity-10 group-hover:opacity-20 transition-opacity transform group-hover:rotate-12 duration-700">
+                  <Calendar className="w-40 h-40 text-blue-500" />
                 </div>
                 <div className="relative z-10">
-                  <Calendar className="w-8 h-8 text-blue-500 group-hover:text-white mb-4 transition-colors" />
-                  <div className="text-lg font-bold group-hover:text-white transition-colors">Book a Hall/Lab</div>
-                  <div className="text-xs text-muted-foreground group-hover:text-blue-100 transition-colors">Reserve campus facilities instantly</div>
+                  <div className="w-14 h-14 bg-blue-500/20 rounded-2xl flex items-center justify-center mb-6 border border-blue-500/30 shadow-inner">
+                    <Calendar className="w-7 h-7 text-blue-400 group-hover:scale-110 transition-transform" />
+                  </div>
+                  <div className="text-xl font-bold text-white mb-2">Book a Hall/Lab</div>
+                  <p className="text-sm text-slate-400 font-medium max-w-[200px]">Reserve premium campus facilities with instant confirmation.</p>
+                  <ArrowUpRight className="absolute top-8 right-8 w-5 h-5 text-slate-500 group-hover:text-blue-400 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" />
                 </div>
               </button>
 
               <button 
                 onClick={() => navigate('/incidents')}
-                className="group relative p-6 bg-purple-600/10 hover:bg-purple-600 transition-all rounded-2xl border border-purple-500/20 text-left overflow-hidden shadow-lg shadow-purple-500/5"
+                className="group relative p-8 rounded-3xl bg-slate-900 border border-white/5 text-left overflow-hidden transition-all hover:scale-[1.02] active:scale-[0.98] shadow-2xl"
               >
-                <div className="absolute top-[-20%] right-[-10%] opacity-5 group-hover:opacity-10 transition-opacity">
-                  <AlertCircle className="w-24 h-24 rotate-12" />
+                <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-pink-600 blur opacity-0 group-hover:opacity-20 transition duration-500" />
+                <div className="absolute top-[-20%] right-[-10%] opacity-10 group-hover:opacity-20 transition-opacity transform group-hover:rotate-12 duration-700">
+                  <AlertCircle className="w-40 h-40 text-purple-500" />
                 </div>
                 <div className="relative z-10">
-                  <AlertCircle className="w-8 h-8 text-purple-500 group-hover:text-white mb-4 transition-colors" />
-                  <div className="text-lg font-bold group-hover:text-white transition-colors">Report an Issue</div>
-                  <div className="text-xs text-muted-foreground group-hover:text-purple-100 transition-colors">Log facility or hardware faults</div>
+                  <div className="w-14 h-14 bg-purple-500/20 rounded-2xl flex items-center justify-center mb-6 border border-purple-500/30 shadow-inner">
+                    <AlertCircle className="w-7 h-7 text-purple-400 group-hover:scale-110 transition-transform" />
+                  </div>
+                  <div className="text-xl font-bold text-white mb-2">Report an Issue</div>
+                  <p className="text-sm text-slate-400 font-medium max-w-[200px]">Fast-track technical support and facility requests.</p>
+                  <ArrowUpRight className="absolute top-8 right-8 w-5 h-5 text-slate-500 group-hover:text-purple-400 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" />
                 </div>
               </button>
             </div>
           </motion.div>
 
-          {/* Stats Boxes */}
-          <motion.div 
-            variants={itemVariants}
-            className="glass-glow rounded-3xl p-6 border border-blue-500/10 flex flex-col items-center justify-center text-center gap-2 group glow-border"
-          >
-            <div className="w-12 h-12 bg-blue-500/20 rounded-2xl flex items-center justify-center mb-2 border border-blue-500/30 group-hover:scale-110 transition-transform">
-              <Calendar className="text-blue-400 w-6 h-6" />
-            </div>
-            <div className="text-3xl font-bold font-space text-blue-400">08</div>
-            <div className="text-[10px] font-bold text-blue-500/60 uppercase tracking-widest">Total Bookings</div>
-          </motion.div>
+          {/* Key Metrics - Vertical Style */}
+          <div className="md:col-span-1 grid grid-cols-1 gap-6">
+            <MetricCard 
+              icon={<Calendar className="w-5 h-5" />} 
+              label="TOTAL BOOKINGS" 
+              value="08" 
+              color="blue" 
+              variants={itemVariants}
+            />
+            <MetricCard 
+              icon={<AlertCircle className="w-5 h-5" />} 
+              label="PENDING TICKETS" 
+              value="02" 
+              color="rose" 
+              variants={itemVariants}
+            />
+            <MetricCard 
+              icon={<Bell className="w-5 h-5" />} 
+              label="UNREAD NOTIFS" 
+              value="05" 
+              color="amber" 
+              variants={itemVariants}
+            />
+          </div>
 
+          {/* Activity Timeline - Expanded */}
           <motion.div 
             variants={itemVariants}
-            className="glass-glow rounded-3xl p-6 border border-red-500/10 flex flex-col items-center justify-center text-center gap-2 group glow-border"
+            className="md:col-span-3 glass-glow rounded-[2rem] p-8 border border-white/5 relative shadow-inner h-full"
           >
-            <div className="w-12 h-12 bg-red-500/20 rounded-2xl flex items-center justify-center mb-2 border border-red-500/30 group-hover:scale-110 transition-transform">
-              <AlertCircle className="text-red-400 w-6 h-6" />
-            </div>
-            <div className="text-3xl font-bold font-space text-red-400">02</div>
-            <div className="text-[10px] font-bold text-red-500/60 uppercase tracking-widest">Pending Tickets</div>
-          </motion.div>
-
-          <motion.div 
-            variants={itemVariants}
-            className="glass-glow rounded-3xl p-6 border border-amber-500/10 flex flex-col items-center justify-center text-center gap-2 group glow-border"
-          >
-            <div className="w-12 h-12 bg-amber-500/20 rounded-2xl flex items-center justify-center mb-2 border border-amber-500/30 group-hover:scale-110 transition-transform">
-              <Bell className="text-amber-400 w-6 h-6" />
-            </div>
-            <div className="text-3xl font-bold font-space text-amber-400">05</div>
-            <div className="text-[10px] font-bold text-amber-500/60 uppercase tracking-widest">Unread Notifications</div>
-          </motion.div>
-
-          {/* Activity Timeline */}
-          <motion.div 
-            variants={itemVariants}
-            className="md:col-span-3 glass-glow rounded-3xl p-8 border border-border glow-border"
-          >
-            <div className="flex justify-between items-center mb-8">
-              <h3 className="text-xl font-bold font-space flex items-center gap-2">
-                <History className="w-6 h-6 text-blue-500" />
-                Recent Activity
+            <div className="flex justify-between items-center mb-10">
+              <h3 className="text-xl font-black font-space flex items-center gap-3 text-slate-900 dark:text-white">
+                <div className="p-2 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                  <History className="w-5 h-5 text-blue-500" />
+                </div>
+                Activity Stream
               </h3>
-              <button className="text-sm font-bold text-blue-500 hover:text-blue-400 transition-colors">View Full History</button>
+              <button className="px-5 py-2 bg-slate-900 hover:bg-slate-800 border border-white/10 rounded-xl text-xs font-black text-blue-500 tracking-widest transition-all">
+                ARCHIVE
+              </button>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-4">
               <TimelineItem 
-                icon={<Calendar className="w-4 h-4 text-blue-500" />}
+                icon={<Calendar className="w-4 h-4 text-blue-400" />}
                 title="Lab 04 Booking: Confirmed"
+                description="Your hall reservation for Tomorrow at 10:00 AM has been granted."
                 time="2h ago"
                 status="COMPLETED"
               />
               <TimelineItem 
-                icon={<AlertCircle className="w-4 h-4 text-red-500" />}
+                icon={<AlertCircle className="w-4 h-4 text-rose-400" />}
                 title="AC Fault - Lecture Hall 02"
-                time="IN PROGRESS"
+                description="Technical team is on the way to resolve the connectivity/cooling issue."
+                time="RUNNING"
                 status="PENDING"
                 showTimer
                 elapsedSeconds={ticketTime}
                 formatFn={formatTicketTime}
               />
               <TimelineItem 
-                icon={<Calendar className="w-4 h-4 text-emerald-500" />}
+                icon={<Calendar className="w-4 h-4 text-emerald-400" />}
                 title="Seminar Hall B Reservation"
+                description="Past event which was successfully hosted with 50+ participants."
                 time="Yesterday"
                 status="COMPLETED"
               />
@@ -240,29 +260,58 @@ const UserDashboard = () => {
   );
 };
 
-const TimelineItem = ({ icon, title, time, status, showTimer, elapsedSeconds, formatFn }) => (
-  <div className="flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/5 transition-all group">
-    <div className="flex items-center gap-4">
-      <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center border border-white/10 group-hover:border-blue-500/50 transition-colors">
+const MetricCard = ({ icon, label, value, color, variants }) => {
+  const colorClasses = {
+    blue: 'text-blue-400 bg-blue-500/10 border-blue-500/20',
+    rose: 'text-rose-400 bg-rose-500/10 border-rose-500/20',
+    amber: 'text-amber-400 bg-amber-500/10 border-amber-500/20'
+  };
+
+  return (
+    <motion.div 
+      variants={variants}
+      className="glass-glow rounded-[1.5rem] p-6 border border-white/5 flex flex-col justify-between group relative overflow-hidden"
+    >
+      <div className={`absolute top-0 right-0 w-20 h-20 blur-3xl opacity-10 group-hover:opacity-30 transition-opacity ${color === 'blue' ? 'bg-blue-500' : color === 'rose' ? 'bg-rose-500' : 'bg-amber-500'}`} />
+      <div className="flex items-center gap-3 mb-4">
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${colorClasses[color]}`}>
+          {icon}
+        </div>
+        <div className="text-[10px] font-black tracking-[0.2em] opacity-60 dark:text-white">{label}</div>
+      </div>
+      <div className={`text-4xl font-black font-space ${colorClasses[color].split(' ')[0]}`}>{value}</div>
+    </motion.div>
+  );
+};
+
+const TimelineItem = ({ icon, title, description, time, status, showTimer, elapsedSeconds, formatFn }) => (
+  <div className="flex items-center justify-between p-5 bg-slate-900/40 hover:bg-slate-900 border border-white/5 hover:border-white/10 rounded-2xl transition-all group">
+    <div className="flex items-start gap-5">
+      <div className="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center border border-white/5 group-hover:border-blue-500/30 transition-all shadow-lg shrink-0">
         {icon}
       </div>
       <div>
-        <div className="text-sm font-bold group-hover:text-blue-400 transition-colors">{title}</div>
-        <div className="flex items-center gap-2 mt-1">
-          <Clock className="w-3 h-3 text-blue-500/50" />
-          <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">{time}</span>
+        <div className="text-[15px] font-bold text-slate-900 dark:text-white group-hover:text-blue-400 transition-colors mb-0.5">{title}</div>
+        <p className="text-xs text-muted-foreground line-clamp-1 mb-2 font-medium">{description}</p>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 px-2 py-0.5 bg-white/5 rounded-md border border-white/5">
+            <Clock className="w-3 h-3 text-blue-500/60" />
+            <span className="text-[10px] text-muted-foreground font-black uppercase tracking-wider">{time}</span>
+          </div>
+          {showTimer && (
+            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-rose-500/10 border border-rose-500/20 rounded-md">
+              <Timer className="w-3 h-3 text-rose-500 animate-pulse" />
+              <span className="text-[10px] font-mono font-bold text-rose-500">{formatFn(elapsedSeconds)}</span>
+            </div>
+          )}
         </div>
       </div>
     </div>
-    <div className="flex items-center gap-6">
-      {showTimer && (
-        <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-lg">
-          <Timer className="w-3 h-3 text-red-500 animate-pulse" />
-          <span className="text-xs font-mono font-bold text-red-500">{formatFn(elapsedSeconds)}</span>
-        </div>
-      )}
-      <div className={`text-[10px] font-black tracking-widest px-3 py-1 rounded-full ${
-        status === 'COMPLETED' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'
+    <div className="hidden sm:block">
+      <div className={`text-[9px] font-black tracking-[0.2em] px-4 py-1.5 rounded-full border shadow-lg ${
+        status === 'COMPLETED' 
+          ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 shadow-emerald-500/5' 
+          : 'bg-amber-500/10 text-amber-500 border-amber-500/20 shadow-amber-500/5'
       }`}>
         {status}
       </div>

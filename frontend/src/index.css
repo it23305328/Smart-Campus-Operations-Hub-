@@ -138,6 +138,10 @@
   .animate-shake {
     animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
   }
+
+  .animate-spin-slow {
+    animation: spin 8s linear infinite;
+  }
 }
 
 ::selection {
