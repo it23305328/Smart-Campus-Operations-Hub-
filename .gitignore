@@ -1,0 +1,34 @@
+# maven
+backend/target/
+backend/pom.xml.tag
+backend/pom.xml.releaseBackup
+backend/pom.xml.versionsBackup
+backend/pom.xml.next
+
+# node
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/*.local
+
+# env files (Keep these out of GitHub!)
+.env
+.env.local
+.env.*.local
+frontend/.env
+frontend/.env.local
+backend/.env
+# Added: general env for any subdirectory
+**/.env 
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+*.swp
+.DS_Store
+
+# Spring Boot / Backend Specifics
+# We don't ignore application.properties usually, 
+# BUT we ignore the ones that contain real secrets.
+backend/src/main/resources/application.properties
