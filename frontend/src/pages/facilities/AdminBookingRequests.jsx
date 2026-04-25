@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import bookingService from '../../services/bookingService';
 import { CheckCircle, XCircle, Eye, Clock, User, Phone, Calendar, MapPin, Users } from 'lucide-react';
 import ConfirmationModal from './ConfirmationModal';
+import { motion } from 'framer-motion';
 
 const AdminBookingRequests = () => {
     const [bookings, setBookings] = useState([]);
@@ -145,15 +146,15 @@ const AdminBookingRequests = () => {
     const getStatusColor = (status) => {
         switch (status) {
             case 'PENDING':
-                return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+                return 'bg-amber-500/10 text-amber-500 border-amber-500/20';
             case 'APPROVED':
-                return 'bg-green-100 text-green-700 border-green-200';
+                return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20';
             case 'REJECTED':
-                return 'bg-red-100 text-red-700 border-red-200';
+                return 'bg-red-500/10 text-red-500 border-red-500/20';
             case 'CANCELLED':
-                return 'bg-gray-100 text-gray-700 border-gray-200';
+                return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
             default:
-                return 'bg-gray-100 text-gray-700 border-gray-200';
+                return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
         }
     };
 
@@ -238,16 +239,51 @@ const AdminBookingRequests = () => {
 
     const pendingCount = allBookings.filter(b => b.status === 'PENDING').length;
 
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: { staggerChildren: 0.1 }
+        }
+    };
+
+    const itemVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: { duration: 0.5, ease: "easeOut" }
+        }
+    };
+
     return (
-        <div className="min-h-screen bg-slate-50 p-6 md:p-10">
-            <div className="max-w-7xl mx-auto">
-                <div className="mb-10">
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">Booking Requests</h1>
-                    <p className="text-slate-500 mt-2 font-medium">Manage and process student booking requests</p>
-                </div>
+        <div className="min-h-screen pt-4 pb-20">
+            {/* Mesh Background (Shared) */}
+            <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 dark:bg-blue-600/20 blur-[120px] rounded-full animate-pulse" />
+                <div className="absolute bottom-[10%] right-[-5%] w-[35%] h-[35%] bg-purple-600/10 dark:bg-purple-600/20 blur-[120px] rounded-full animate-pulse" style={{ animationDelay: '2s' }} />
+                <div className="absolute top-[40%] left-[60%] w-[25%] h-[25%] bg-blue-400/5 dark:bg-blue-400/10 blur-[100px] rounded-full" />
+            </div>
+
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <motion.div 
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="mb-10"
+                >
+                    <h1 className="text-3xl md:text-4xl font-space font-bold tracking-tight">
+                        <span className="text-gradient">Booking Requests</span>
+                    </h1>
+                    <p className="text-muted-foreground mt-2 font-medium">Manage and process student booking requests</p>
+                </motion.div>
 
                 {/* Filter Tabs */}
-                <div className="bg-white rounded-2xl shadow-lg p-2 mb-8 inline-flex gap-2 flex-wrap">
+                <motion.div 
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                    className="glass rounded-2xl p-2 mb-8 inline-flex gap-2 flex-wrap border border-border"
+                >
                     {['PENDING', 'APPROVED', 'REJECTED', 'CANCELLED', 'ALL'].map((status) => {
                         const count = status === 'ALL' ? allBookings.length : allBookings.filter(b => b.status === status).length;
                         return (
@@ -256,14 +292,14 @@ const AdminBookingRequests = () => {
                                 onClick={() => setFilter(status)}
                                 className={`px-6 py-3 rounded-xl font-bold transition-all ${
                                     filter === status
-                                        ? 'bg-indigo-600 text-white shadow-md'
-                                        : 'text-slate-600 hover:bg-slate-100'
+                                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
+                                        : 'text-muted-foreground hover:bg-white/10'
                                 }`}
                             >
                                 {status}
                                 {count > 0 && (
                                     <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
-                                        filter === status ? 'bg-white text-indigo-600' : 'bg-slate-200 text-slate-600'
+                                        filter === status ? 'bg-white/20 text-white' : 'bg-white/10 text-muted-foreground'
                                     }`}>
                                         {count}
                                     </span>
@@ -271,46 +307,55 @@ const AdminBookingRequests = () => {
                             </button>
                         );
                     })}
-                </div>
+                </motion.div>
 
                 {/* Bookings Table */}
-                <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/60 border border-slate-100 overflow-hidden">
+                <motion.div 
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                    className="glass-glow rounded-3xl border border-border overflow-hidden"
+                >
                     {loading ? (
                         <div className="flex justify-center items-center py-20">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
                         </div>
                     ) : bookings.length > 0 ? (
                         <div className="overflow-x-auto">
                             <table className="w-full text-left border-collapse">
                                 <thead>
-                                    <tr className="bg-slate-50/50">
-                                        <th className="px-4 py-4 text-sm font-bold text-slate-400 uppercase tracking-widest">Student</th>
-                                        <th className="px-4 py-4 text-sm font-bold text-slate-400 uppercase tracking-widest">Resource</th>
-                                        <th className="px-4 py-4 text-sm font-bold text-slate-400 uppercase tracking-widest">Date & Time</th>
-                                        <th className="px-4 py-4 text-sm font-bold text-slate-400 uppercase tracking-widest">Requested</th>
-                                        <th className="px-4 py-4 text-sm font-bold text-slate-400 uppercase tracking-widest">Status</th>
-                                        <th className="px-4 py-4 text-sm font-bold text-slate-400 uppercase tracking-widest text-right">Actions</th>
+                                    <tr className="bg-white/5">
+                                        <th className="px-4 py-4 text-sm font-bold text-muted-foreground uppercase tracking-widest">Student</th>
+                                        <th className="px-4 py-4 text-sm font-bold text-muted-foreground uppercase tracking-widest">Resource</th>
+                                        <th className="px-4 py-4 text-sm font-bold text-muted-foreground uppercase tracking-widest">Date & Time</th>
+                                        <th className="px-4 py-4 text-sm font-bold text-muted-foreground uppercase tracking-widest">Requested</th>
+                                        <th className="px-4 py-4 text-sm font-bold text-muted-foreground uppercase tracking-widest">Status</th>
+                                        <th className="px-4 py-4 text-sm font-bold text-muted-foreground uppercase tracking-widest text-right">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-50/80">
+                                <tbody className="divide-y divide-border">
                                     {bookings.map((booking) => {
                                         const bookingTime = formatDateTime(booking.bookingDate);
                                         return (
-                                            <tr key={booking.id} className="hover:bg-slate-50/30 transition-colors">
+                                            <motion.tr 
+                                                variants={itemVariants}
+                                                key={booking.id} 
+                                                className="hover:bg-white/5 transition-colors"
+                                            >
                                                 <td className="px-4 py-4">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold flex-shrink-0">
+                                                        <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 font-bold flex-shrink-0 border border-blue-500/20">
                                                             {booking.studentName?.charAt(0).toUpperCase() || 'S'}
                                                         </div>
                                                         <div>
-                                                            <div className="font-bold text-slate-800 text-sm">{booking.studentName}</div>
-                                                            <div className="text-slate-400 text-xs">{booking.studentId}</div>
+                                                            <div className="font-bold text-foreground text-sm group-hover:text-blue-400 transition-colors">{booking.studentName}</div>
+                                                            <div className="text-muted-foreground text-xs">{booking.studentId}</div>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td className="px-4 py-4">
-                                                    <div className="font-bold text-slate-800 text-sm">{booking.resourceName}</div>
-                                                    <div className="text-slate-400 text-xs flex items-center gap-1">
+                                                    <div className="font-bold text-foreground text-sm">{booking.resourceName}</div>
+                                                    <div className="text-muted-foreground text-xs flex items-center gap-1">
                                                         <MapPin className="w-3 h-3" />
                                                         {booking.resourceLocation || 'N/A'}
                                                     </div>
@@ -320,36 +365,36 @@ const AdminBookingRequests = () => {
                                                         {/* Reservation Date */}
                                                         <div className="flex items-center gap-1.5">
                                                             <Calendar className="w-3.5 h-3.5 text-blue-500" />
-                                                            <span className="text-sm font-semibold text-slate-700">
+                                                            <span className="text-sm font-semibold text-foreground">
                                                                 {formatDate(booking.reservationDate)}
                                                             </span>
                                                         </div>
                                                         {/* Time Slot */}
                                                         <div className="flex items-center gap-1.5">
-                                                            <Clock className="w-3.5 h-3.5 text-indigo-500" />
-                                                            <span className="text-sm text-slate-600">
+                                                            <Clock className="w-3.5 h-3.5 text-blue-400" />
+                                                            <span className="text-sm text-muted-foreground">
                                                                 {formatTime(booking.startTime)} - {formatTime(booking.endTime)}
                                                             </span>
                                                         </div>
                                                         {booking.slotNumber && (
-                                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700">
+                                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-blue-500/10 text-blue-500 border border-blue-500/20">
                                                                 Slot {booking.slotNumber}
                                                             </span>
                                                         )}
                                                         {booking.additionalMembers && booking.additionalMembers.length > 0 && (
                                                             <div className="flex items-center gap-1">
-                                                                <Users className="w-3 h-3 text-slate-400" />
-                                                                <span className="text-xs text-slate-500">+{booking.additionalMembers.length} members</span>
+                                                                <Users className="w-3 h-3 text-muted-foreground" />
+                                                                <span className="text-xs text-muted-foreground">+{booking.additionalMembers.length} members</span>
                                                             </div>
                                                         )}
                                                     </div>
                                                 </td>
                                                 <td className="px-4 py-4">
                                                     <div>
-                                                        <div className="text-sm text-slate-700 font-medium">
+                                                        <div className="text-sm text-foreground font-medium">
                                                             {bookingTime.relativeTime}
                                                         </div>
-                                                        <div className="text-xs text-slate-400">
+                                                        <div className="text-xs text-muted-foreground">
                                                             {bookingTime.fullDateStr} at {bookingTime.timeStr}
                                                         </div>
                                                     </div>
@@ -366,7 +411,7 @@ const AdminBookingRequests = () => {
                                                     <div className="flex justify-end gap-1.5">
                                                         <button
                                                             onClick={() => handleViewDetails(booking)}
-                                                            className="p-2.5 text-blue-600 hover:bg-blue-50 rounded-xl transition-all active:scale-90"
+                                                            className="p-2.5 text-blue-500 hover:bg-blue-500/10 rounded-xl transition-all active:scale-90 border border-transparent hover:border-blue-500/20"
                                                             title="View Details"
                                                         >
                                                             <Eye className="w-4 h-4" />
@@ -375,14 +420,14 @@ const AdminBookingRequests = () => {
                                                             <>
                                                                 <button
                                                                     onClick={() => handleApprove(booking.id)}
-                                                                    className="p-2.5 text-green-600 hover:bg-green-50 rounded-xl transition-all active:scale-90"
+                                                                    className="p-2.5 text-emerald-500 hover:bg-emerald-500/10 rounded-xl transition-all active:scale-90 border border-transparent hover:border-emerald-500/20"
                                                                     title="Approve"
                                                                 >
                                                                     <CheckCircle className="w-4 h-4" />
                                                                 </button>
                                                                 <button
                                                                     onClick={() => handleRejectClick(booking.id)}
-                                                                    className="p-2.5 text-red-600 hover:bg-red-50 rounded-xl transition-all active:scale-90"
+                                                                    className="p-2.5 text-red-500 hover:bg-red-500/10 rounded-xl transition-all active:scale-90 border border-transparent hover:border-red-500/20"
                                                                     title="Reject"
                                                                 >
                                                                     <XCircle className="w-4 h-4" />
@@ -391,7 +436,7 @@ const AdminBookingRequests = () => {
                                                         )}
                                                     </div>
                                                 </td>
-                                            </tr>
+                                            </motion.tr>
                                         );
                                     })}
                                 </tbody>
@@ -399,91 +444,91 @@ const AdminBookingRequests = () => {
                         </div>
                     ) : (
                         <div className="py-20 text-center">
-                            <div className="w-20 h-20 mx-auto bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                                <Calendar className="w-10 h-10 text-slate-400" />
+                            <div className="w-20 h-20 mx-auto bg-white/5 rounded-full flex items-center justify-center mb-4 border border-border">
+                                <Calendar className="w-10 h-10 text-muted-foreground" />
                             </div>
-                            <h3 className="text-xl font-bold text-slate-700 mb-2">No {filter.toLowerCase()} bookings</h3>
-                            <p className="text-slate-500">There are no booking requests with {filter.toLowerCase()} status</p>
+                            <h3 className="text-xl font-bold text-foreground mb-2">No {filter.toLowerCase()} bookings</h3>
+                            <p className="text-muted-foreground">There are no booking requests with {filter.toLowerCase()} status</p>
                         </div>
                     )}
-                </div>
+                </motion.div>
             </div>
 
             {/* Booking Details Modal */}
             {isDetailsModalOpen && selectedBooking && (
-                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-[2.5rem] w-full max-w-2xl shadow-3xl overflow-hidden max-h-[90vh] overflow-y-auto">
-                        <div className="px-8 py-6 bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-slate-100 sticky top-0 z-10">
-                            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Booking Details</h2>
-                            <p className="text-sm text-slate-500 mt-1">Booking ID: #{selectedBooking.id}</p>
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+                    <div className="bg-background rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto border border-border glass">
+                        <div className="px-8 py-6 bg-white/5 border-b border-border sticky top-0 backdrop-blur-xl z-10">
+                            <h2 className="text-2xl font-bold font-space text-foreground tracking-tight">Booking Details</h2>
+                            <p className="text-sm text-muted-foreground mt-1">Booking ID: #{selectedBooking.id}</p>
                         </div>
                         
                         <div className="p-8 space-y-5">
                             {/* Student Information */}
-                            <div className="bg-slate-50 rounded-2xl p-5">
-                                <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4">Student Information</h3>
+                            <div className="bg-white/5 rounded-2xl p-5 border border-border">
+                                <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-4">Student Information</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center">
-                                            <User className="w-5 h-5 text-indigo-600" />
+                                        <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+                                            <User className="w-5 h-5 text-blue-500" />
                                         </div>
                                         <div>
-                                            <p className="text-xs text-slate-500 font-semibold">Name</p>
-                                            <p className="font-bold text-slate-800">{selectedBooking.studentName}</p>
+                                            <p className="text-xs text-muted-foreground font-semibold">Name</p>
+                                            <p className="font-bold text-foreground">{selectedBooking.studentName}</p>
                                         </div>
                                     </div>
                                     
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
-                                            <User className="w-5 h-5 text-purple-600" />
+                                        <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center border border-purple-500/20">
+                                            <User className="w-5 h-5 text-purple-500" />
                                         </div>
                                         <div>
-                                            <p className="text-xs text-slate-500 font-semibold">Student ID</p>
-                                            <p className="font-mono font-bold text-slate-800">{selectedBooking.studentId}</p>
+                                            <p className="text-xs text-muted-foreground font-semibold">Student ID</p>
+                                            <p className="font-mono font-bold text-foreground">{selectedBooking.studentId}</p>
                                         </div>
                                     </div>
                                     
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
-                                            <Phone className="w-5 h-5 text-emerald-600" />
+                                        <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+                                            <Phone className="w-5 h-5 text-emerald-500" />
                                         </div>
                                         <div>
-                                            <p className="text-xs text-slate-500 font-semibold">Contact</p>
-                                            <p className="font-bold text-slate-800">{selectedBooking.contactNumber}</p>
+                                            <p className="text-xs text-muted-foreground font-semibold">Contact</p>
+                                            <p className="font-bold text-foreground">{selectedBooking.contactNumber}</p>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             
                             {/* Reservation Date & Time - Prominent Section */}
-                            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-5 border border-blue-200">
-                                <h3 className="text-sm font-black text-blue-400 uppercase tracking-widest mb-4">Reservation Details</h3>
+                            <div className="bg-blue-500/5 rounded-2xl p-5 border border-blue-500/20">
+                                <h3 className="text-sm font-bold text-blue-400 uppercase tracking-widest mb-4">Reservation Details</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="bg-white rounded-xl p-4 border border-blue-100">
+                                    <div className="bg-white/5 rounded-xl p-4 border border-border">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
-                                                <Calendar className="w-6 h-6 text-blue-600" />
+                                            <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+                                                <Calendar className="w-6 h-6 text-blue-500" />
                                             </div>
                                             <div>
-                                                <p className="text-xs text-slate-500 font-semibold">Reservation Date</p>
-                                                <p className="text-base font-black text-slate-800">{formatDate(selectedBooking.reservationDate)}</p>
-                                                <p className="text-sm text-blue-600 font-semibold">{formatFullDate(selectedBooking.reservationDate)}</p>
+                                                <p className="text-xs text-muted-foreground font-semibold">Reservation Date</p>
+                                                <p className="text-base font-bold text-foreground">{formatDate(selectedBooking.reservationDate)}</p>
+                                                <p className="text-sm text-blue-500 font-semibold">{formatFullDate(selectedBooking.reservationDate)}</p>
                                             </div>
                                         </div>
                                     </div>
                                     
-                                    <div className="bg-white rounded-xl p-4 border border-blue-100">
+                                    <div className="bg-white/5 rounded-xl p-4 border border-border">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center">
-                                                <Clock className="w-6 h-6 text-indigo-600" />
+                                            <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+                                                <Clock className="w-6 h-6 text-blue-400" />
                                             </div>
                                             <div>
-                                                <p className="text-xs text-slate-500 font-semibold">Time Slot</p>
-                                                <p className="text-base font-black text-slate-800">
+                                                <p className="text-xs text-muted-foreground font-semibold">Time Slot</p>
+                                                <p className="text-base font-bold text-foreground">
                                                     {formatTime(selectedBooking.startTime)} - {formatTime(selectedBooking.endTime)}
                                                 </p>
                                                 {selectedBooking.slotNumber && (
-                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700 mt-1">
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-blue-500/10 text-blue-500 border border-blue-500/20 mt-1">
                                                         Slot {selectedBooking.slotNumber}
                                                     </span>
                                                 )}
@@ -494,17 +539,17 @@ const AdminBookingRequests = () => {
                             </div>
                             
                             {/* Timeline - Request & Status Dates */}
-                            <div className="bg-slate-50 rounded-2xl p-5">
-                                <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4">Booking Timeline</h3>
+                            <div className="bg-white/5 rounded-2xl p-5 border border-border">
+                                <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-4">Booking Timeline</h3>
                                 <div className="space-y-3">
                                     {/* Request Created */}
                                     <div className="flex items-start gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                            <Clock className="w-4 h-4 text-blue-600" />
+                                        <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0 mt-0.5 border border-blue-500/20">
+                                            <Clock className="w-4 h-4 text-blue-500" />
                                         </div>
                                         <div>
-                                            <p className="text-sm font-semibold text-slate-700">Request Submitted</p>
-                                            <p className="text-xs text-slate-500">
+                                            <p className="text-sm font-semibold text-foreground">Request Submitted</p>
+                                            <p className="text-xs text-muted-foreground">
                                                 {(() => {
                                                     const t = formatDateTime(selectedBooking.bookingDate);
                                                     return `${t.fullDateStr} at ${t.timeStr} (${t.relativeTime})`;
@@ -516,26 +561,26 @@ const AdminBookingRequests = () => {
                                     {/* Status specific timelines */}
                                     {selectedBooking.status === 'APPROVED' && (
                                         <div className="flex items-start gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                                <CheckCircle className="w-4 h-4 text-green-600" />
+                                            <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center flex-shrink-0 mt-0.5 border border-emerald-500/20">
+                                                <CheckCircle className="w-4 h-4 text-emerald-500" />
                                             </div>
                                             <div>
-                                                <p className="text-sm font-semibold text-green-700">Approved</p>
-                                                <p className="text-xs text-slate-500">Booking was approved by administrator</p>
+                                                <p className="text-sm font-semibold text-emerald-500">Approved</p>
+                                                <p className="text-xs text-muted-foreground">Booking was approved by administrator</p>
                                             </div>
                                         </div>
                                     )}
                                     
                                     {selectedBooking.status === 'REJECTED' && (
                                         <div className="flex items-start gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                                <XCircle className="w-4 h-4 text-red-600" />
+                                            <div className="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center flex-shrink-0 mt-0.5 border border-red-500/20">
+                                                <XCircle className="w-4 h-4 text-red-500" />
                                             </div>
                                             <div>
-                                                <p className="text-sm font-semibold text-red-700">Rejected</p>
-                                                <p className="text-xs text-slate-500">Booking was rejected by administrator</p>
+                                                <p className="text-sm font-semibold text-red-500">Rejected</p>
+                                                <p className="text-xs text-muted-foreground">Booking was rejected by administrator</p>
                                                 {selectedBooking.rejectionReason && (
-                                                    <p className="text-xs text-red-600 mt-1 italic">"{selectedBooking.rejectionReason}"</p>
+                                                    <p className="text-xs text-red-500 mt-1 italic">"{selectedBooking.rejectionReason}"</p>
                                                 )}
                                             </div>
                                         </div>
@@ -543,24 +588,24 @@ const AdminBookingRequests = () => {
                                     
                                     {selectedBooking.status === 'CANCELLED' && (
                                         <div className="flex items-start gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                                <XCircle className="w-4 h-4 text-gray-600" />
+                                            <div className="w-8 h-8 rounded-full bg-gray-500/10 flex items-center justify-center flex-shrink-0 mt-0.5 border border-gray-500/20">
+                                                <XCircle className="w-4 h-4 text-gray-400" />
                                             </div>
                                             <div>
-                                                <p className="text-sm font-semibold text-gray-700">Cancelled</p>
-                                                <p className="text-xs text-slate-500">Booking was cancelled by student</p>
+                                                <p className="text-sm font-semibold text-gray-400">Cancelled</p>
+                                                <p className="text-xs text-muted-foreground">Booking was cancelled by student</p>
                                             </div>
                                         </div>
                                     )}
                                     
                                     {selectedBooking.status === 'PENDING' && (
                                         <div className="flex items-start gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                                <Clock className="w-4 h-4 text-yellow-600" />
+                                            <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center flex-shrink-0 mt-0.5 border border-amber-500/20">
+                                                <Clock className="w-4 h-4 text-amber-500" />
                                             </div>
                                             <div>
-                                                <p className="text-sm font-semibold text-yellow-700">Awaiting Review</p>
-                                                <p className="text-xs text-slate-500">Waiting for administrator approval</p>
+                                                <p className="text-sm font-semibold text-amber-500">Awaiting Review</p>
+                                                <p className="text-xs text-muted-foreground">Waiting for administrator approval</p>
                                             </div>
                                         </div>
                                     )}
@@ -568,58 +613,58 @@ const AdminBookingRequests = () => {
                             </div>
                             
                             {/* Resource Info */}
-                            <div className="bg-slate-50 rounded-2xl p-5">
-                                <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4">Resource Information</h3>
+                            <div className="bg-white/5 rounded-2xl p-5 border border-border">
+                                <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-4">Resource Information</h3>
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
-                                        <MapPin className="w-5 h-5 text-blue-600" />
+                                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+                                        <MapPin className="w-5 h-5 text-blue-500" />
                                     </div>
                                     <div>
-                                        <p className="font-bold text-slate-800">{selectedBooking.resourceName}</p>
-                                        <p className="text-xs text-slate-500">{selectedBooking.resourceLocation || 'N/A'}</p>
+                                        <p className="font-bold text-foreground">{selectedBooking.resourceName}</p>
+                                        <p className="text-xs text-muted-foreground">{selectedBooking.resourceLocation || 'N/A'}</p>
                                     </div>
                                 </div>
                             </div>
                             
                             {/* Additional Members */}
                             {selectedBooking.additionalMembers && selectedBooking.additionalMembers.length > 0 && (
-                                <div className="bg-indigo-50 rounded-2xl p-5 border border-indigo-100">
-                                    <h3 className="text-sm font-black text-indigo-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                <div className="bg-blue-500/5 rounded-2xl p-5 border border-blue-500/20">
+                                    <h3 className="text-sm font-bold text-blue-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                                         <Users className="w-4 h-4" />
                                         Additional Members ({selectedBooking.additionalMembers.length})
                                     </h3>
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                         {selectedBooking.additionalMembers.map((memberId, index) => (
-                                            <div key={index} className="bg-white rounded-xl p-3 border border-indigo-100">
+                                            <div key={index} className="bg-white/5 rounded-xl p-3 border border-border">
                                                 <div className="flex items-center gap-2">
-                                                    <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center">
-                                                        <User className="w-4 h-4 text-indigo-600" />
+                                                    <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+                                                        <User className="w-4 h-4 text-blue-500" />
                                                     </div>
                                                     <div>
-                                                        <p className="text-xs text-slate-500">Member {index + 1}</p>
-                                                        <p className="font-bold text-slate-800 text-sm">{memberId}</p>
+                                                        <p className="text-xs text-muted-foreground">Member {index + 1}</p>
+                                                        <p className="font-bold text-foreground text-sm">{memberId}</p>
                                                     </div>
                                                 </div>
                                             </div>
                                         ))}
                                     </div>
-                                    <p className="text-xs text-indigo-600 mt-3">
+                                    <p className="text-xs text-blue-500 mt-3">
                                         Total members: {selectedBooking.additionalMembers.length + 1} (including creator)
                                     </p>
                                 </div>
                             )}
                             
                             {/* Purpose */}
-                            <div className="bg-slate-50 rounded-2xl p-5">
-                                <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-3">Purpose</h3>
-                                <p className="text-slate-800 bg-white p-4 rounded-xl border border-slate-100">
+                            <div className="bg-white/5 rounded-2xl p-5 border border-border">
+                                <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-3">Purpose</h3>
+                                <p className="text-foreground bg-white/5 p-4 rounded-xl border border-border">
                                     {selectedBooking.purpose || 'No purpose specified'}
                                 </p>
                             </div>
                             
                             {/* Status Badge */}
-                            <div className="flex items-center gap-4 bg-slate-50 rounded-2xl p-5">
-                                <span className="text-sm font-black text-slate-400 uppercase tracking-widest">Current Status:</span>
+                            <div className="flex items-center gap-4 bg-white/5 rounded-2xl p-5 border border-border">
+                                <span className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Current Status:</span>
                                 <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-black tracking-widest uppercase border ${getStatusColor(selectedBooking.status)}`}>
                                     {selectedBooking.status === 'PENDING' && <Clock className="w-4 h-4 mr-1.5" />}
                                     {selectedBooking.status === 'APPROVED' && <CheckCircle className="w-4 h-4 mr-1.5" />}
@@ -629,7 +674,7 @@ const AdminBookingRequests = () => {
                             </div>
                             
                             {/* Action Buttons */}
-                            <div className="flex gap-3 pt-4 border-t border-slate-100">
+                            <div className="flex gap-3 pt-4 border-t border-border">
                                 {selectedBooking.status === 'PENDING' && (
                                     <>
                                         <button
@@ -637,7 +682,7 @@ const AdminBookingRequests = () => {
                                                 handleApprove(selectedBooking.id);
                                                 setIsDetailsModalOpen(false);
                                             }}
-                                            className="flex-1 bg-green-600 hover:bg-green-700 text-white py-4 rounded-2xl font-bold text-lg shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2"
+                                            className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 border border-emerald-500/20"
                                         >
                                             <CheckCircle className="w-5 h-5" />
                                             Approve Booking
@@ -647,7 +692,7 @@ const AdminBookingRequests = () => {
                                                 handleRejectClick(selectedBooking.id);
                                                 setIsDetailsModalOpen(false);
                                             }}
-                                            className="flex-1 bg-red-600 hover:bg-red-700 text-white py-4 rounded-2xl font-bold text-lg shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2"
+                                            className="flex-1 bg-red-600 hover:bg-red-700 text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-red-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 border border-red-500/20"
                                         >
                                             <XCircle className="w-5 h-5" />
                                             Reject Booking
@@ -656,7 +701,7 @@ const AdminBookingRequests = () => {
                                 )}
                                 <button
                                     onClick={() => setIsDetailsModalOpen(false)}
-                                    className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 py-4 rounded-2xl font-bold text-lg active:scale-95 transition-all"
+                                    className="flex-1 bg-white/10 hover:bg-white/20 text-foreground py-4 rounded-2xl font-bold text-lg active:scale-95 transition-all border border-border"
                                 >
                                     Close
                                 </button>
@@ -668,11 +713,11 @@ const AdminBookingRequests = () => {
             
             {/* Rejection Reason Modal */}
             {rejectionModal.isOpen && (
-                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-2xl w-full max-w-md shadow-3xl overflow-hidden">
-                        <div className="px-6 py-5 bg-gradient-to-r from-red-50 to-rose-50 border-b border-slate-100">
-                            <h2 className="text-xl font-black text-slate-900 tracking-tight">Rejection Reason</h2>
-                            <p className="text-xs text-slate-500 mt-1">Optional - Provide a reason for rejection</p>
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+                    <div className="bg-background rounded-3xl w-full max-w-md shadow-2xl overflow-hidden border border-border glass">
+                        <div className="px-6 py-5 bg-white/5 border-b border-border">
+                            <h2 className="text-xl font-bold font-space text-foreground tracking-tight">Rejection Reason</h2>
+                            <p className="text-xs text-muted-foreground mt-1">Optional - Provide a reason for rejection</p>
                         </div>
                         
                         <div className="p-6">
@@ -681,19 +726,19 @@ const AdminBookingRequests = () => {
                                 onChange={(e) => setRejectionModal(prev => ({ ...prev, reason: e.target.value }))}
                                 placeholder="Enter reason for rejection (optional)..."
                                 rows="4"
-                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none transition-all resize-none"
+                                className="w-full px-4 py-3 bg-white/5 border border-border rounded-xl focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none transition-all resize-none text-foreground placeholder:text-muted-foreground"
                             />
                             
                             <div className="flex gap-3 mt-6">
                                 <button
                                     onClick={() => setRejectionModal({ isOpen: false, bookingId: null, reason: '' })}
-                                    className="flex-1 px-4 py-2.5 border border-slate-300 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 transition-colors"
+                                    className="flex-1 px-4 py-2.5 border border-border text-foreground font-semibold rounded-xl hover:bg-white/10 transition-colors"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={handleRejectConfirm}
-                                    className="flex-1 px-4 py-2.5 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition-colors"
+                                    className="flex-1 px-4 py-2.5 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition-colors border border-red-500/20"
                                 >
                                     Confirm Rejection
                                 </button>

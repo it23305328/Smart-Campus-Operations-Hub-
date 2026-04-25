@@ -18,24 +18,27 @@ const ConfirmationModal = ({
         switch (type) {
             case 'danger':
                 return {
-                    icon: 'text-red-600',
-                    iconBg: 'bg-red-100',
-                    confirmButton: 'bg-red-600 hover:bg-red-700',
-                    title: 'text-red-900'
+                    icon: 'text-red-500',
+                    iconBg: 'bg-red-500/10',
+                    iconBorder: 'border-red-500/20',
+                    confirmButton: 'bg-red-600 hover:bg-red-700 border-red-500/20',
+                    title: 'text-red-400'
                 };
             case 'info':
                 return {
-                    icon: 'text-blue-600',
-                    iconBg: 'bg-blue-100',
-                    confirmButton: 'bg-blue-600 hover:bg-blue-700',
-                    title: 'text-blue-900'
+                    icon: 'text-blue-500',
+                    iconBg: 'bg-blue-500/10',
+                    iconBorder: 'border-blue-500/20',
+                    confirmButton: 'bg-blue-600 hover:bg-blue-700 border-blue-500/20',
+                    title: 'text-blue-400'
                 };
             default:
                 return {
-                    icon: 'text-yellow-600',
-                    iconBg: 'bg-yellow-100',
-                    confirmButton: 'bg-yellow-600 hover:bg-yellow-700',
-                    title: 'text-yellow-900'
+                    icon: 'text-amber-500',
+                    iconBg: 'bg-amber-500/10',
+                    iconBorder: 'border-amber-500/20',
+                    confirmButton: 'bg-amber-600 hover:bg-amber-700 border-amber-500/20',
+                    title: 'text-amber-400'
                 };
         }
     };
@@ -45,33 +48,33 @@ const ConfirmationModal = ({
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div 
-                className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
                 onClick={onClose}
             />
             
-            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md transform transition-all">
+            <div className="relative bg-background rounded-3xl shadow-2xl w-full max-w-md transform transition-all border border-border glass">
                 <div className="p-6">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center space-x-3">
-                            <div className={`w-10 h-10 rounded-full ${colors.iconBg} flex items-center justify-center`}>
+                            <div className={`w-10 h-10 rounded-full ${colors.iconBg} border ${colors.iconBorder} flex items-center justify-center`}>
                                 <AlertTriangle className={`w-5 h-5 ${colors.icon}`} />
                             </div>
-                            <h3 className={`text-lg font-bold ${colors.title}`}>{title}</h3>
+                            <h3 className={`text-lg font-bold font-space ${colors.title}`}>{title}</h3>
                         </div>
                         <button
                             onClick={onClose}
-                            className="p-1 hover:bg-slate-100 rounded-lg transition-colors"
+                            className="p-1 hover:bg-white/10 rounded-lg transition-colors"
                         >
-                            <X className="w-5 h-5 text-slate-400" />
+                            <X className="w-5 h-5 text-muted-foreground" />
                         </button>
                     </div>
                     
-                    <p className="text-slate-600 mb-6 ml-13">{message}</p>
+                    <p className="text-muted-foreground mb-6 ml-13">{message}</p>
                     
                     <div className="flex space-x-3">
                         <button
                             onClick={onClose}
-                            className="flex-1 px-4 py-2.5 border border-slate-300 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 transition-colors"
+                            className="flex-1 px-4 py-2.5 border border-border text-foreground font-semibold rounded-xl hover:bg-white/10 transition-colors"
                         >
                             {cancelText}
                         </button>
@@ -80,7 +83,7 @@ const ConfirmationModal = ({
                                 onConfirm();
                                 onClose();
                             }}
-                            className={`flex-1 px-4 py-2.5 text-white font-semibold rounded-xl transition-colors ${colors.confirmButton}`}
+                            className={`flex-1 px-4 py-2.5 text-white font-semibold rounded-xl transition-colors shadow-lg border ${colors.confirmButton}`}
                         >
                             {confirmText}
                         </button>

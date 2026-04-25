@@ -18,6 +18,7 @@ import {
     History
 } from 'lucide-react';
 import ConfirmationModal from './ConfirmationModal';
+import { motion } from 'framer-motion';
 
 const MyBookings = () => {
     const navigate = useNavigate();
@@ -156,20 +157,20 @@ const MyBookings = () => {
         // If booking is completed, show different color
         if (status === 'APPROVED' && isBookingCompleted(booking)) {
             return {
-                bg: 'bg-blue-50',
-                text: 'text-blue-700',
-                border: 'border-blue-200',
-                badge: 'bg-blue-100 text-blue-700 border-blue-200',
+                bg: 'bg-blue-500/5',
+                text: 'text-blue-400',
+                border: 'border-blue-500/20',
+                badge: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
                 icon: CheckCheck
             };
         }
         // If booking is currently active
         if (status === 'APPROVED' && isBookingCurrentlyActive(booking)) {
             return {
-                bg: 'bg-emerald-50',
-                text: 'text-emerald-700',
-                border: 'border-emerald-200',
-                badge: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+                bg: 'bg-emerald-500/5',
+                text: 'text-emerald-400',
+                border: 'border-emerald-500/20',
+                badge: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
                 icon: CheckCircle
             };
         }
@@ -177,42 +178,42 @@ const MyBookings = () => {
         switch (status) {
             case 'PENDING':
                 return {
-                    bg: 'bg-yellow-50',
-                    text: 'text-yellow-700',
-                    border: 'border-yellow-200',
-                    badge: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+                    bg: 'bg-amber-500/5',
+                    text: 'text-amber-400',
+                    border: 'border-amber-500/20',
+                    badge: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
                     icon: Clock
                 };
             case 'APPROVED':
                 return {
-                    bg: 'bg-green-50',
-                    text: 'text-green-700',
-                    border: 'border-green-200',
-                    badge: 'bg-green-100 text-green-700 border-green-200',
+                    bg: 'bg-emerald-500/5',
+                    text: 'text-emerald-400',
+                    border: 'border-emerald-500/20',
+                    badge: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
                     icon: CheckCircle
                 };
             case 'REJECTED':
                 return {
-                    bg: 'bg-red-50',
-                    text: 'text-red-700',
-                    border: 'border-red-200',
-                    badge: 'bg-red-100 text-red-700 border-red-200',
+                    bg: 'bg-red-500/5',
+                    text: 'text-red-400',
+                    border: 'border-red-500/20',
+                    badge: 'bg-red-500/10 text-red-400 border-red-500/20',
                     icon: XCircle
                 };
             case 'CANCELLED':
                 return {
-                    bg: 'bg-gray-50',
-                    text: 'text-gray-700',
-                    border: 'border-gray-200',
-                    badge: 'bg-gray-100 text-gray-700 border-gray-200',
+                    bg: 'bg-gray-500/5',
+                    text: 'text-gray-400',
+                    border: 'border-gray-500/20',
+                    badge: 'bg-gray-500/10 text-gray-400 border-gray-500/20',
                     icon: XCircle
                 };
             default:
                 return {
-                    bg: 'bg-gray-50',
-                    text: 'text-gray-700',
-                    border: 'border-gray-200',
-                    badge: 'bg-gray-100 text-gray-700 border-gray-200',
+                    bg: 'bg-gray-500/5',
+                    text: 'text-gray-400',
+                    border: 'border-gray-500/20',
+                    badge: 'bg-gray-500/10 text-gray-400 border-gray-500/20',
                     icon: AlertCircle
                 };
         }
@@ -231,11 +232,11 @@ const MyBookings = () => {
         const state = getBookingStateLabel(booking);
         switch (state) {
             case 'In Progress':
-                return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+                return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
             case 'Upcoming':
-                return 'bg-blue-100 text-blue-700 border-blue-200';
+                return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
             case 'Completed':
-                return 'bg-indigo-100 text-indigo-700 border-indigo-200';
+                return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
             default:
                 return '';
         }
@@ -385,48 +386,88 @@ const MyBookings = () => {
     const rejectedBookings = bookings.filter(b => b.status === 'REJECTED');
     const cancelledBookings = bookings.filter(b => b.status === 'CANCELLED');
 
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: { staggerChildren: 0.1 }
+        }
+    };
+
+    const itemVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: { duration: 0.5, ease: "easeOut" }
+        }
+    };
+
     return (
-        <div className="min-h-screen bg-slate-50 p-6 md:p-10">
-            <div className="max-w-7xl mx-auto">
+        <div className="min-h-screen pt-4 pb-20">
+            {/* Mesh Background (Shared) */}
+            <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 dark:bg-blue-600/20 blur-[120px] rounded-full animate-pulse" />
+                <div className="absolute bottom-[10%] right-[-5%] w-[35%] h-[35%] bg-purple-600/10 dark:bg-purple-600/20 blur-[120px] rounded-full animate-pulse" style={{ animationDelay: '2s' }} />
+                <div className="absolute top-[40%] left-[60%] w-[25%] h-[25%] bg-blue-400/5 dark:bg-blue-400/10 blur-[100px] rounded-full" />
+            </div>
+
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 {/* Header */}
-                <div className="mb-10">
+                <motion.div 
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="mb-10"
+                >
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
-                            <h1 className="text-4xl font-black text-slate-900 tracking-tight">My Bookings</h1>
-                            <p className="text-slate-500 mt-2 font-medium">Manage and track your resource bookings</p>
+                            <h1 className="text-3xl md:text-4xl font-space font-bold tracking-tight">
+                                <span className="text-gradient">My Bookings</span>
+                            </h1>
+                            <p className="text-muted-foreground mt-2 font-medium">Manage and track your resource bookings</p>
                         </div>
-                        <button onClick={fetchUserBookings} className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 font-semibold rounded-2xl hover:bg-slate-50 transition-all shadow-sm">
+                        <button onClick={fetchUserBookings} className="flex items-center gap-2 px-6 py-3 glass rounded-2xl border border-border text-foreground font-semibold hover:bg-white/10 transition-all">
                             <RefreshCw className="w-4 h-4" /> Refresh
                         </button>
                     </div>
                     
                     {/* Quick Stats */}
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-6">
-                        <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total</p>
-                            <p className="text-3xl font-black text-slate-800 mt-1">{bookings.length}</p>
-                        </div>
-                        <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-100 shadow-sm">
-                            <p className="text-xs font-bold text-emerald-600 uppercase tracking-wider">Active Now</p>
-                            <p className="text-3xl font-black text-emerald-700 mt-1">{activeBookings.length}</p>
-                        </div>
-                        <div className="bg-blue-50 rounded-2xl p-4 border border-blue-100 shadow-sm">
-                            <p className="text-xs font-bold text-blue-600 uppercase tracking-wider">Upcoming</p>
-                            <p className="text-3xl font-black text-blue-700 mt-1">{upcomingBookings.length}</p>
-                        </div>
-                        <div className="bg-indigo-50 rounded-2xl p-4 border border-indigo-100 shadow-sm">
-                            <p className="text-xs font-bold text-indigo-600 uppercase tracking-wider">Completed</p>
-                            <p className="text-3xl font-black text-indigo-700 mt-1">{completedBookings.length}</p>
-                        </div>
-                        <div className="bg-yellow-50 rounded-2xl p-4 border border-yellow-100 shadow-sm">
-                            <p className="text-xs font-bold text-yellow-600 uppercase tracking-wider">Pending</p>
-                            <p className="text-3xl font-black text-yellow-700 mt-1">{pendingBookings.length}</p>
-                        </div>
-                    </div>
-                </div>
+                    <motion.div 
+                        variants={containerVariants}
+                        initial="hidden"
+                        animate="visible"
+                        className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-6"
+                    >
+                        <motion.div variants={itemVariants} className="glass rounded-2xl p-4 border border-border">
+                            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Total</p>
+                            <p className="text-3xl font-black text-foreground mt-1">{bookings.length}</p>
+                        </motion.div>
+                        <motion.div variants={itemVariants} className="bg-emerald-500/5 rounded-2xl p-4 border border-emerald-500/20">
+                            <p className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Active Now</p>
+                            <p className="text-3xl font-black text-emerald-400 mt-1">{activeBookings.length}</p>
+                        </motion.div>
+                        <motion.div variants={itemVariants} className="bg-blue-500/5 rounded-2xl p-4 border border-blue-500/20">
+                            <p className="text-xs font-bold text-blue-400 uppercase tracking-wider">Upcoming</p>
+                            <p className="text-3xl font-black text-blue-400 mt-1">{upcomingBookings.length}</p>
+                        </motion.div>
+                        <motion.div variants={itemVariants} className="bg-blue-500/5 rounded-2xl p-4 border border-blue-500/20">
+                            <p className="text-xs font-bold text-blue-400 uppercase tracking-wider">Completed</p>
+                            <p className="text-3xl font-black text-blue-400 mt-1">{completedBookings.length}</p>
+                        </motion.div>
+                        <motion.div variants={itemVariants} className="bg-amber-500/5 rounded-2xl p-4 border border-amber-500/20">
+                            <p className="text-xs font-bold text-amber-400 uppercase tracking-wider">Pending</p>
+                            <p className="text-3xl font-black text-amber-400 mt-1">{pendingBookings.length}</p>
+                        </motion.div>
+                    </motion.div>
+                </motion.div>
 
                 {/* Filter Tabs */}
-                <div className="bg-white rounded-2xl shadow-lg p-2 mb-8 inline-flex gap-2 flex-wrap">
+                <motion.div 
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                    className="glass rounded-2xl p-2 mb-8 inline-flex gap-2 flex-wrap border border-border"
+                >
                     {[
                         { key: 'ALL', label: 'All' },
                         { key: 'ONGOING', label: 'Ongoing' },
@@ -438,23 +479,28 @@ const MyBookings = () => {
                         const count = tab.key === 'ALL' ? bookings.length : getStatusCount(tab.key);
                         return (
                             <button key={tab.key} onClick={() => setFilter(tab.key)}
-                                className={`px-5 py-3 rounded-xl font-bold transition-all ${filter === tab.key ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'}`}>
+                                className={`px-5 py-3 rounded-xl font-bold transition-all ${filter === tab.key ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-muted-foreground hover:bg-white/10'}`}>
                                 {tab.label}
                                 {count > 0 && (
-                                    <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${filter === tab.key ? 'bg-white text-indigo-600' : 'bg-slate-200 text-slate-600'}`}>{count}</span>
+                                    <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${filter === tab.key ? 'bg-white/20 text-white' : 'bg-white/10 text-muted-foreground'}`}>{count}</span>
                                 )}
                             </button>
                         );
                     })}
-                </div>
+                </motion.div>
 
                 {/* Bookings List */}
                 {loading ? (
                     <div className="flex justify-center items-center py-20">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
                     </div>
                 ) : filteredBookings.length > 0 ? (
-                    <div className="space-y-4">
+                    <motion.div 
+                        variants={containerVariants}
+                        initial="hidden"
+                        animate="visible"
+                        className="space-y-4"
+                    >
                         {filteredBookings.map((booking) => {
                             const statusStyle = getStatusColor(booking.status, booking);
                             const StatusIcon = statusStyle.icon;
@@ -464,17 +510,21 @@ const MyBookings = () => {
                             const isActive = isBookingCurrentlyActive(booking);
                             
                             return (
-                                <div key={booking.id} className={`bg-white rounded-3xl border ${statusStyle.border} shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden`}>
+                                <motion.div 
+                                    variants={itemVariants}
+                                    key={booking.id} 
+                                    className={`glass border ${statusStyle.border} rounded-3xl hover:shadow-lg transition-all duration-300 overflow-hidden`}
+                                >
                                     <div className="p-6">
                                         <div className="flex flex-col lg:flex-row lg:items-center gap-6">
                                             <div className="flex-1">
                                                 <div className="flex items-start gap-4">
-                                                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl flex-shrink-0">
+                                                    <div className="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 font-bold text-xl flex-shrink-0 border border-blue-500/20">
                                                         {booking.resourceName?.charAt(0).toUpperCase() || 'R'}
                                                     </div>
                                                     <div className="flex-1">
                                                         <div className="flex items-center gap-2 flex-wrap">
-                                                            <h3 className="text-xl font-bold text-slate-800">{booking.resourceName}</h3>
+                                                            <h3 className="text-xl font-bold text-foreground">{booking.resourceName}</h3>
                                                             {/* State badge (In Progress / Upcoming / Completed) */}
                                                             {booking.status === 'APPROVED' && stateBadge && (
                                                                 <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-black tracking-widest uppercase border ${stateBadge}`}>
@@ -489,45 +539,45 @@ const MyBookings = () => {
                                                                 </span>
                                                             )}
                                                             {booking.slotNumber && (
-                                                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700">Slot {booking.slotNumber}</span>
+                                                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20">Slot {booking.slotNumber}</span>
                                                             )}
                                                         </div>
                                                         
                                                         {/* Date and Time */}
-                                                        <div className="mt-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                                        <div className="mt-3 p-3 bg-white/5 rounded-xl border border-border">
                                                             <div className="flex flex-wrap items-center gap-4">
                                                                 <div className="flex items-center gap-2">
-                                                                    <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
-                                                                        <Calendar className="w-4 h-4 text-blue-600" />
+                                                                    <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+                                                                        <Calendar className="w-4 h-4 text-blue-500" />
                                                                     </div>
                                                                     <div>
-                                                                        <p className="text-xs text-slate-500 font-medium">Date</p>
-                                                                        <p className="text-sm font-bold text-slate-800">{formatFullDate(booking.reservationDate)}</p>
-                                                                        <p className="text-xs text-blue-600 font-semibold">{formatDate(booking.reservationDate)}</p>
+                                                                        <p className="text-xs text-muted-foreground font-medium">Date</p>
+                                                                        <p className="text-sm font-bold text-foreground">{formatFullDate(booking.reservationDate)}</p>
+                                                                        <p className="text-xs text-blue-400 font-semibold">{formatDate(booking.reservationDate)}</p>
                                                                     </div>
                                                                 </div>
-                                                                <div className="w-px h-10 bg-slate-200 hidden sm:block"></div>
+                                                                <div className="w-px h-10 bg-border hidden sm:block"></div>
                                                                 <div className="flex items-center gap-2">
-                                                                    <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center">
-                                                                        <Clock className="w-4 h-4 text-indigo-600" />
+                                                                    <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+                                                                        <Clock className="w-4 h-4 text-blue-400" />
                                                                     </div>
                                                                     <div>
-                                                                        <p className="text-xs text-slate-500 font-medium">Time</p>
-                                                                        <p className="text-sm font-bold text-slate-800">{formatTime(booking.startTime)} - {formatTime(booking.endTime)}</p>
-                                                                        {booking.slotNumber && <p className="text-xs text-indigo-600 font-semibold">Meeting Room - Slot {booking.slotNumber}</p>}
+                                                                        <p className="text-xs text-muted-foreground font-medium">Time</p>
+                                                                        <p className="text-sm font-bold text-foreground">{formatTime(booking.startTime)} - {formatTime(booking.endTime)}</p>
+                                                                        {booking.slotNumber && <p className="text-xs text-blue-400 font-semibold">Meeting Room - Slot {booking.slotNumber}</p>}
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                         
-                                                        <div className="flex items-center gap-1 mt-2 text-sm text-slate-500">
+                                                        <div className="flex items-center gap-1 mt-2 text-sm text-muted-foreground">
                                                             <MapPin className="w-3.5 h-3.5" /> {booking.resourceLocation || 'N/A'}
                                                         </div>
-                                                        <div className="flex items-center gap-1 mt-1 text-xs text-slate-400">
+                                                        <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
                                                             <Calendar className="w-3 h-3" /> Booked on {formatDateTime(booking.bookingDate)}
                                                         </div>
                                                         {booking.purpose && (
-                                                            <p className="mt-2 text-sm text-slate-600 bg-slate-50 rounded-lg p-2"><span className="font-semibold">Purpose:</span> {booking.purpose}</p>
+                                                            <p className="mt-2 text-sm text-muted-foreground bg-white/5 rounded-lg p-2"><span className="font-semibold">Purpose:</span> {booking.purpose}</p>
                                                         )}
                                                     </div>
                                                 </div>
@@ -535,158 +585,189 @@ const MyBookings = () => {
                                             
                                             {/* Actions */}
                                             <div className="flex items-center gap-2 lg:flex-col lg:items-stretch">
-                                                <button onClick={() => handleViewDetails(booking)} className="flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-xl hover:bg-slate-200 transition-all text-sm">
+                                                <button onClick={() => handleViewDetails(booking)} className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white/10 text-foreground font-semibold rounded-xl hover:bg-white/20 transition-all text-sm border border-border">
                                                     <Eye className="w-4 h-4" /> Details
                                                 </button>
                                                 
                                                 {booking.status === 'PENDING' && (
-                                                    <button onClick={() => handleCancelRequest(booking)} className="flex items-center justify-center gap-2 px-4 py-2.5 bg-yellow-600 text-white font-semibold rounded-xl hover:bg-yellow-700 transition-all text-sm">
+                                                    <button onClick={() => handleCancelRequest(booking)} className="flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-600 text-white font-semibold rounded-xl hover:bg-amber-700 transition-all text-sm border border-amber-500/20">
                                                         <XCircle className="w-4 h-4" /> Revert
                                                     </button>
                                                 )}
                                                 
                                                 {booking.status === 'APPROVED' && !isCompleted && (
-                                                    <button onClick={() => handleCancelApprovedBooking(booking)} className="flex items-center justify-center gap-2 px-4 py-2.5 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition-all text-sm">
+                                                    <button onClick={() => handleCancelApprovedBooking(booking)} className="flex items-center justify-center gap-2 px-4 py-2.5 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition-all text-sm border border-red-500/20">
                                                         <XCircle className="w-4 h-4" /> Cancel
                                                     </button>
                                                 )}
                                                 
-                                                <button onClick={handleNavigateToFacility} className="flex items-center justify-center gap-2 px-4 py-2.5 border border-indigo-300 text-indigo-700 font-semibold rounded-xl hover:bg-indigo-50 transition-all text-sm">
+                                                <button onClick={handleNavigateToFacility} className="flex items-center justify-center gap-2 px-4 py-2.5 border border-blue-500/20 text-blue-400 font-semibold rounded-xl hover:bg-blue-500/10 transition-all text-sm">
                                                     View Resources <ArrowRight className="w-4 h-4" />
                                                 </button>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </motion.div>
                             );
                         })}
-                    </div>
+                    </motion.div>
                 ) : (
-                    <div className="bg-white rounded-[2.5rem] shadow-xl border border-slate-100 py-20 text-center">
-                        <div className="w-24 h-24 mx-auto bg-slate-100 rounded-full flex items-center justify-center mb-6">
-                            <Calendar className="w-12 h-12 text-slate-400" />
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="glass-glow rounded-3xl border border-border py-20 text-center"
+                    >
+                        <div className="w-24 h-24 mx-auto bg-white/5 rounded-full flex items-center justify-center mb-6 border border-border">
+                            <Calendar className="w-12 h-12 text-muted-foreground" />
                         </div>
-                        <h3 className="text-2xl font-bold text-slate-700 mb-2">No bookings found</h3>
-                        <p className="text-slate-500 mb-6 max-w-md mx-auto">
+                        <h3 className="text-2xl font-bold text-foreground mb-2">No bookings found</h3>
+                        <p className="text-muted-foreground mb-6 max-w-md mx-auto">
                             {filter === 'ALL' ? "You haven't made any bookings yet." : `No ${filter.toLowerCase()} bookings.`}
                         </p>
-                        <button onClick={() => navigate('/facilities')} className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 transition-all shadow-lg">
+                        <button onClick={() => navigate('/facilities')} className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/20 border border-blue-500/20">
                             Browse Resources <ChevronRight className="w-5 h-5" />
                         </button>
-                    </div>
+                    </motion.div>
                 )}
 
                 {/* Currently Active Bookings */}
                 {activeBookings.length > 0 && (
-                    <div className="mt-12">
-                        <h2 className="text-2xl font-black text-slate-800 mb-6 flex items-center gap-2">
-                            <CheckCircle className="w-6 h-6 text-emerald-600" />
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mt-12"
+                    >
+                        <h2 className="text-2xl font-bold font-space text-foreground mb-6 flex items-center gap-2">
+                            <CheckCircle className="w-6 h-6 text-emerald-500" />
                             Currently Active
-                            <span className="text-sm font-normal text-slate-500 ml-2">({activeBookings.length})</span>
+                            <span className="text-sm font-normal text-muted-foreground ml-2">({activeBookings.length})</span>
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {activeBookings.map((booking) => (
-                                <div key={booking.id} className="bg-emerald-50 rounded-2xl p-5 border-2 border-emerald-300 cursor-pointer hover:shadow-lg transition-all animate-pulse" onClick={() => handleViewDetails(booking)}>
+                                <motion.div 
+                                    key={booking.id} 
+                                    className="bg-emerald-500/5 rounded-2xl p-5 border-2 border-emerald-500/30 cursor-pointer hover:shadow-lg transition-all animate-pulse"
+                                    onClick={() => handleViewDetails(booking)}
+                                    whileHover={{ scale: 1.02 }}
+                                >
                                     <div className="flex items-start justify-between mb-3">
-                                        <div className="w-12 h-12 rounded-xl bg-emerald-200 flex items-center justify-center">
-                                            <CheckCircle className="w-6 h-6 text-emerald-700" />
+                                        <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+                                            <CheckCircle className="w-6 h-6 text-emerald-500" />
                                         </div>
-                                        <span className="text-xs font-bold text-emerald-700 bg-emerald-200 px-3 py-1 rounded-full">IN PROGRESS</span>
+                                        <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">IN PROGRESS</span>
                                     </div>
-                                    <h3 className="font-bold text-slate-800">{booking.resourceName}</h3>
-                                    <div className="flex items-center gap-1 text-sm text-emerald-700 mt-2">
+                                    <h3 className="font-bold text-foreground">{booking.resourceName}</h3>
+                                    <div className="flex items-center gap-1 text-sm text-emerald-400 mt-2">
                                         <Calendar className="w-3.5 h-3.5" /> <span className="font-semibold">{formatDate(booking.reservationDate)}</span>
                                     </div>
-                                    <div className="flex items-center gap-1 text-sm text-emerald-700 mt-1">
+                                    <div className="flex items-center gap-1 text-sm text-emerald-400 mt-1">
                                         <Clock className="w-3.5 h-3.5" /> {formatTime(booking.startTime)} - {formatTime(booking.endTime)}
                                     </div>
-                                    <div className="flex items-center gap-1 text-xs text-emerald-600 mt-1">
+                                    <div className="flex items-center gap-1 text-xs text-emerald-400/70 mt-1">
                                         <MapPin className="w-3 h-3" /> {booking.resourceLocation || 'N/A'}
                                     </div>
-                                </div>
+                                </motion.div>
                             ))}
                         </div>
-                    </div>
+                    </motion.div>
                 )}
 
                 {/* Upcoming Bookings */}
                 {upcomingBookings.length > 0 && (
-                    <div className="mt-12">
-                        <h2 className="text-2xl font-black text-slate-800 mb-6 flex items-center gap-2">
-                            <Calendar className="w-6 h-6 text-blue-600" />
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mt-12"
+                    >
+                        <h2 className="text-2xl font-bold font-space text-foreground mb-6 flex items-center gap-2">
+                            <Calendar className="w-6 h-6 text-blue-500" />
                             Upcoming Bookings
-                            <span className="text-sm font-normal text-slate-500 ml-2">({upcomingBookings.length})</span>
+                            <span className="text-sm font-normal text-muted-foreground ml-2">({upcomingBookings.length})</span>
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {upcomingBookings.map((booking) => (
-                                <div key={booking.id} className="bg-blue-50 rounded-2xl p-5 border border-blue-200 cursor-pointer hover:shadow-lg transition-all" onClick={() => handleViewDetails(booking)}>
+                                <motion.div 
+                                    key={booking.id} 
+                                    className="bg-blue-500/5 rounded-2xl p-5 border border-blue-500/20 cursor-pointer hover:shadow-lg transition-all"
+                                    onClick={() => handleViewDetails(booking)}
+                                    whileHover={{ scale: 1.02 }}
+                                >
                                     <div className="flex items-start justify-between mb-3">
-                                        <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
-                                            <Clock className="w-6 h-6 text-blue-600" />
+                                        <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+                                            <Clock className="w-6 h-6 text-blue-500" />
                                         </div>
-                                        <span className="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-1 rounded-full">UPCOMING</span>
+                                        <span className="text-xs font-bold text-blue-400 bg-blue-500/10 px-2 py-1 rounded-full border border-blue-500/20">UPCOMING</span>
                                     </div>
-                                    <h3 className="font-bold text-slate-800">{booking.resourceName}</h3>
-                                    <div className="flex items-center gap-1 text-sm text-blue-700 mt-2">
+                                    <h3 className="font-bold text-foreground">{booking.resourceName}</h3>
+                                    <div className="flex items-center gap-1 text-sm text-blue-400 mt-2">
                                         <Calendar className="w-3.5 h-3.5" /> <span className="font-semibold">{formatDate(booking.reservationDate)}</span>
                                     </div>
-                                    <div className="flex items-center gap-1 text-sm text-blue-700 mt-1">
+                                    <div className="flex items-center gap-1 text-sm text-blue-400 mt-1">
                                         <Clock className="w-3.5 h-3.5" /> {formatTime(booking.startTime)} - {formatTime(booking.endTime)}
                                     </div>
-                                    <div className="flex items-center gap-1 text-xs text-blue-600 mt-1">
+                                    <div className="flex items-center gap-1 text-xs text-blue-400/70 mt-1">
                                         <MapPin className="w-3 h-3" /> {booking.resourceLocation || 'N/A'}
                                     </div>
-                                </div>
+                                </motion.div>
                             ))}
                         </div>
-                    </div>
+                    </motion.div>
                 )}
 
                 {/* Completed Bookings */}
                 {completedBookings.length > 0 && (
-                    <div className="mt-12">
-                        <h2 className="text-2xl font-black text-slate-800 mb-6 flex items-center gap-2">
-                            <History className="w-6 h-6 text-indigo-600" />
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mt-12"
+                    >
+                        <h2 className="text-2xl font-bold font-space text-foreground mb-6 flex items-center gap-2">
+                            <History className="w-6 h-6 text-blue-400" />
                             Completed Bookings
-                            <span className="text-sm font-normal text-slate-500 ml-2">({completedBookings.length})</span>
+                            <span className="text-sm font-normal text-muted-foreground ml-2">({completedBookings.length})</span>
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {completedBookings.map((booking) => (
-                                <div key={booking.id} className="bg-indigo-50 rounded-2xl p-5 border border-indigo-200 cursor-pointer hover:shadow-lg transition-all opacity-75" onClick={() => handleViewDetails(booking)}>
+                                <motion.div 
+                                    key={booking.id} 
+                                    className="bg-blue-500/5 rounded-2xl p-5 border border-blue-500/20 cursor-pointer hover:shadow-lg transition-all opacity-75"
+                                    onClick={() => handleViewDetails(booking)}
+                                    whileHover={{ scale: 1.02 }}
+                                >
                                     <div className="flex items-start justify-between mb-3">
-                                        <div className="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center">
-                                            <CheckCheck className="w-6 h-6 text-indigo-600" />
+                                        <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+                                            <CheckCheck className="w-6 h-6 text-blue-400" />
                                         </div>
-                                        <span className="text-xs font-bold text-indigo-600 bg-indigo-100 px-2 py-1 rounded-full">COMPLETED</span>
+                                        <span className="text-xs font-bold text-blue-400 bg-blue-500/10 px-2 py-1 rounded-full border border-blue-500/20">COMPLETED</span>
                                     </div>
-                                    <h3 className="font-bold text-slate-800">{booking.resourceName}</h3>
-                                    <div className="flex items-center gap-1 text-sm text-indigo-700 mt-2">
+                                    <h3 className="font-bold text-foreground">{booking.resourceName}</h3>
+                                    <div className="flex items-center gap-1 text-sm text-blue-400 mt-2">
                                         <Calendar className="w-3.5 h-3.5" /> <span className="font-semibold">{formatDate(booking.reservationDate)}</span>
                                     </div>
-                                    <div className="flex items-center gap-1 text-sm text-indigo-700 mt-1">
+                                    <div className="flex items-center gap-1 text-sm text-blue-400 mt-1">
                                         <Clock className="w-3.5 h-3.5" /> {formatTime(booking.startTime)} - {formatTime(booking.endTime)}
                                     </div>
-                                    <div className="flex items-center gap-1 text-xs text-indigo-600 mt-1">
+                                    <div className="flex items-center gap-1 text-xs text-blue-400/70 mt-1">
                                         <MapPin className="w-3 h-3" /> {booking.resourceLocation || 'N/A'}
                                     </div>
-                                </div>
+                                </motion.div>
                             ))}
                         </div>
-                    </div>
+                    </motion.div>
                 )}
             </div>
 
             {/* Booking Details Modal */}
             {isDetailsModalOpen && selectedBooking && (
-                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-[2.5rem] w-full max-w-2xl shadow-3xl overflow-hidden max-h-[90vh] overflow-y-auto">
-                        <div className="px-8 py-6 bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-slate-100 sticky top-0 z-10 flex items-center justify-between">
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+                    <div className="bg-background rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto border border-border glass">
+                        <div className="px-8 py-6 bg-white/5 border-b border-border sticky top-0 backdrop-blur-xl z-10 flex items-center justify-between">
                             <div>
-                                <h2 className="text-2xl font-black text-slate-900 tracking-tight">Booking Details</h2>
-                                <p className="text-sm text-slate-500 mt-1">Booking #{selectedBooking.id}</p>
+                                <h2 className="text-2xl font-bold font-space text-foreground tracking-tight">Booking Details</h2>
+                                <p className="text-sm text-muted-foreground mt-1">Booking #{selectedBooking.id}</p>
                             </div>
-                            <button onClick={() => setIsDetailsModalOpen(false)} className="p-2 hover:bg-white/50 rounded-xl transition-colors">
-                                <XCircle className="w-6 h-6 text-slate-400" />
+                            <button onClick={() => setIsDetailsModalOpen(false)} className="p-2 hover:bg-white/10 rounded-xl transition-colors">
+                                <XCircle className="w-6 h-6 text-muted-foreground" />
                             </button>
                         </div>
                         
@@ -696,7 +777,7 @@ const MyBookings = () => {
                                 <div className="flex items-center gap-3">
                                     {React.createElement(getStatusColor(selectedBooking.status, selectedBooking).icon, { className: "w-8 h-8" })}
                                     <div>
-                                        <p className={`text-lg font-black ${getStatusColor(selectedBooking.status, selectedBooking).text}`}>
+                                        <p className={`text-lg font-bold ${getStatusColor(selectedBooking.status, selectedBooking).text}`}>
                                             {getBookingStateLabel(selectedBooking) === 'In Progress' && 'Currently Active'}
                                             {getBookingStateLabel(selectedBooking) === 'Upcoming' && 'Upcoming Booking'}
                                             {getBookingStateLabel(selectedBooking) === 'Completed' && 'Booking Completed'}
@@ -709,26 +790,26 @@ const MyBookings = () => {
                             </div>
                             
                             {/* Date & Time */}
-                            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-5 border border-blue-200">
-                                <h3 className="text-sm font-black text-blue-400 uppercase tracking-widest mb-4">Reservation Date & Time</h3>
+                            <div className="bg-blue-500/5 rounded-2xl p-5 border border-blue-500/20">
+                                <h3 className="text-sm font-bold text-blue-400 uppercase tracking-widest mb-4">Reservation Date & Time</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="bg-white rounded-xl p-4 border border-blue-100">
+                                    <div className="bg-white/5 rounded-xl p-4 border border-border">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center"><Calendar className="w-6 h-6 text-blue-600" /></div>
+                                            <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20"><Calendar className="w-6 h-6 text-blue-500" /></div>
                                             <div>
-                                                <p className="text-xs text-slate-500 font-semibold uppercase">Date</p>
-                                                <p className="text-lg font-black text-slate-800">{formatDate(selectedBooking.reservationDate)}</p>
-                                                <p className="text-sm text-blue-600 font-semibold">{formatFullDate(selectedBooking.reservationDate)}</p>
+                                                <p className="text-xs text-muted-foreground font-semibold uppercase">Date</p>
+                                                <p className="text-lg font-bold text-foreground">{formatDate(selectedBooking.reservationDate)}</p>
+                                                <p className="text-sm text-blue-400 font-semibold">{formatFullDate(selectedBooking.reservationDate)}</p>
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="bg-white rounded-xl p-4 border border-blue-100">
+                                    <div className="bg-white/5 rounded-xl p-4 border border-border">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center"><Clock className="w-6 h-6 text-indigo-600" /></div>
+                                            <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20"><Clock className="w-6 h-6 text-blue-400" /></div>
                                             <div>
-                                                <p className="text-xs text-slate-500 font-semibold uppercase">Time Slot</p>
-                                                <p className="text-lg font-black text-slate-800">{formatTime(selectedBooking.startTime)} - {formatTime(selectedBooking.endTime)}</p>
-                                                {selectedBooking.slotNumber && <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700 mt-1">Meeting Room - Slot {selectedBooking.slotNumber}</span>}
+                                                <p className="text-xs text-muted-foreground font-semibold uppercase">Time Slot</p>
+                                                <p className="text-lg font-bold text-foreground">{formatTime(selectedBooking.startTime)} - {formatTime(selectedBooking.endTime)}</p>
+                                                {selectedBooking.slotNumber && <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20 mt-1">Meeting Room - Slot {selectedBooking.slotNumber}</span>}
                                             </div>
                                         </div>
                                     </div>
@@ -736,31 +817,31 @@ const MyBookings = () => {
                             </div>
                             
                             {/* Resource Info */}
-                            <div className="bg-slate-50 rounded-2xl p-5">
-                                <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4">Resource Information</h3>
+                            <div className="bg-white/5 rounded-2xl p-5 border border-border">
+                                <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-4">Resource Information</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div><p className="text-xs text-slate-500 font-semibold">Resource</p><p className="font-bold text-slate-800 text-lg">{selectedBooking.resourceName}</p><p className="text-sm text-slate-500 flex items-center gap-1"><MapPin className="w-3 h-3" />{selectedBooking.resourceLocation || 'N/A'}</p></div>
-                                    <div><p className="text-xs text-slate-500 font-semibold">Contact</p><p className="font-bold text-slate-800">{selectedBooking.contactNumber}</p></div>
-                                    <div><p className="text-xs text-slate-500 font-semibold">Booked On</p><p className="font-bold text-slate-800">{formatDateTime(selectedBooking.bookingDate)}</p></div>
+                                    <div><p className="text-xs text-muted-foreground font-semibold">Resource</p><p className="font-bold text-foreground text-lg">{selectedBooking.resourceName}</p><p className="text-sm text-muted-foreground flex items-center gap-1"><MapPin className="w-3 h-3" />{selectedBooking.resourceLocation || 'N/A'}</p></div>
+                                    <div><p className="text-xs text-muted-foreground font-semibold">Contact</p><p className="font-bold text-foreground">{selectedBooking.contactNumber}</p></div>
+                                    <div><p className="text-xs text-muted-foreground font-semibold">Booked On</p><p className="font-bold text-foreground">{formatDateTime(selectedBooking.bookingDate)}</p></div>
                                 </div>
                             </div>
                             
                             {selectedBooking.purpose && (
-                                <div className="bg-slate-50 rounded-2xl p-5"><h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-3">Purpose</h3><p className="text-slate-800">{selectedBooking.purpose}</p></div>
+                                <div className="bg-white/5 rounded-2xl p-5 border border-border"><h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-3">Purpose</h3><p className="text-foreground">{selectedBooking.purpose}</p></div>
                             )}
                             
                             {selectedBooking.rejectionReason && (
-                                <div className="bg-red-50 rounded-2xl p-5 border border-red-200"><h3 className="text-sm font-black text-red-400 uppercase tracking-widest mb-3">Rejection Reason</h3><p className="text-red-700">{selectedBooking.rejectionReason}</p></div>
+                                <div className="bg-red-500/5 rounded-2xl p-5 border border-red-500/20"><h3 className="text-sm font-bold text-red-400 uppercase tracking-widest mb-3">Rejection Reason</h3><p className="text-red-400">{selectedBooking.rejectionReason}</p></div>
                             )}
                             
-                            <div className="flex gap-3 pt-4 border-t border-slate-100">
+                            <div className="flex gap-3 pt-4 border-t border-border">
                                 {selectedBooking.status === 'PENDING' && (
-                                    <button onClick={() => { handleCancelRequest(selectedBooking); setIsDetailsModalOpen(false); }} className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white py-4 rounded-2xl font-bold text-lg shadow-lg active:scale-95 transition-all">Cancel Request</button>
+                                    <button onClick={() => { handleCancelRequest(selectedBooking); setIsDetailsModalOpen(false); }} className="flex-1 bg-amber-600 hover:bg-amber-700 text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-amber-500/20 active:scale-95 transition-all border border-amber-500/20">Cancel Request</button>
                                 )}
                                 {selectedBooking.status === 'APPROVED' && !isBookingCompleted(selectedBooking) && (
-                                    <button onClick={() => { handleCancelApprovedBooking(selectedBooking); setIsDetailsModalOpen(false); }} className="flex-1 bg-red-600 hover:bg-red-700 text-white py-4 rounded-2xl font-bold text-lg shadow-lg active:scale-95 transition-all">Cancel Booking</button>
+                                    <button onClick={() => { handleCancelApprovedBooking(selectedBooking); setIsDetailsModalOpen(false); }} className="flex-1 bg-red-600 hover:bg-red-700 text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-red-500/20 active:scale-95 transition-all border border-red-500/20">Cancel Booking</button>
                                 )}
-                                <button onClick={() => setIsDetailsModalOpen(false)} className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 py-4 rounded-2xl font-bold text-lg active:scale-95 transition-all">Close</button>
+                                <button onClick={() => setIsDetailsModalOpen(false)} className="flex-1 bg-white/10 hover:bg-white/20 text-foreground py-4 rounded-2xl font-bold text-lg active:scale-95 transition-all border border-border">Close</button>
                             </div>
                         </div>
                     </div>

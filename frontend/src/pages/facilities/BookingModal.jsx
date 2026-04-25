@@ -475,18 +475,18 @@ const BookingModal = ({ isOpen, onClose, resource, onSuccess }) => {
         <>
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                 <div 
-                    className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                    className="absolute inset-0 bg-black/60 backdrop-blur-sm"
                     onClick={handleClose}
                 />
                 
-                <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl transform transition-all max-h-[90vh] overflow-y-auto">
-                    <div className="flex items-center justify-between p-4 border-b border-slate-200 sticky top-0 bg-white z-10">
+                <div className="relative bg-background rounded-3xl shadow-2xl w-full max-w-2xl transform transition-all max-h-[90vh] overflow-y-auto border border-border glass">
+                    <div className="flex items-center justify-between p-4 border-b border-border sticky top-0 bg-background/80 backdrop-blur-xl z-10">
                         <div>
-                            <h2 className="text-xl font-bold text-slate-800">Book Resource</h2>
-                            <p className="text-xs text-slate-500 mt-0.5">{resource.name}</p>
+                            <h2 className="text-xl font-bold font-space text-foreground">Book Resource</h2>
+                            <p className="text-xs text-muted-foreground mt-0.5">{resource.name}</p>
                         </div>
-                        <button onClick={handleClose} className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors">
-                            <X className="w-4 h-4 text-slate-500" />
+                        <button onClick={handleClose} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors">
+                            <X className="w-4 h-4 text-muted-foreground" />
                         </button>
                     </div>
                     
@@ -494,31 +494,31 @@ const BookingModal = ({ isOpen, onClose, resource, onSuccess }) => {
                         {/* Student Info (Read Only) */}
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Student ID</label>
+                                <label className="block text-xs font-semibold text-muted-foreground mb-1.5">Student ID</label>
                                 <div className="relative">
-                                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                                    <input type="text" value={formData.studentId} readOnly className="w-full pl-9 pr-3 py-2 text-sm bg-slate-100 border border-slate-200 rounded-lg outline-none text-slate-600" />
+                                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                    <input type="text" value={formData.studentId} readOnly className="w-full pl-9 pr-3 py-2 text-sm bg-white/5 border border-border rounded-lg outline-none text-foreground" />
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Full Name</label>
+                                <label className="block text-xs font-semibold text-muted-foreground mb-1.5">Full Name</label>
                                 <div className="relative">
-                                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                                    <input type="text" value={formData.studentName} readOnly className="w-full pl-9 pr-3 py-2 text-sm bg-slate-100 border border-slate-200 rounded-lg outline-none text-slate-600" />
+                                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                    <input type="text" value={formData.studentName} readOnly className="w-full pl-9 pr-3 py-2 text-sm bg-white/5 border border-border rounded-lg outline-none text-foreground" />
                                 </div>
                             </div>
                         </div>
                         
                         {/* Contact Number - Auto-filled if available, editable if not */}
                         <div>
-                            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                            <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
                                 Contact Number <span className="text-red-500">*</span>
                                 {phoneAutoFilled && (
-                                    <span className="text-green-600 font-normal ml-1">(Auto-filled from profile)</span>
+                                    <span className="text-emerald-500 font-normal ml-1">(Auto-filled from profile)</span>
                                 )}
                             </label>
                             <div className="relative">
-                                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                                 <input
                                     type="tel"
                                     name="contactNumber"
@@ -529,10 +529,10 @@ const BookingModal = ({ isOpen, onClose, resource, onSuccess }) => {
                                     readOnly={phoneAutoFilled && !!formData.contactNumber}
                                     className={`w-full pl-9 pr-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all ${
                                         phoneAutoFilled && formData.contactNumber 
-                                            ? 'bg-green-50 border-green-200 text-slate-700 cursor-default' 
+                                            ? 'bg-emerald-500/5 border-emerald-500/20 text-foreground cursor-default' 
                                             : errors.contactNumber 
-                                                ? 'bg-slate-50 border-red-500' 
-                                                : 'bg-slate-50 border-slate-200'
+                                                ? 'bg-white/5 border-red-500' 
+                                                : 'bg-white/5 border-border'
                                     }`}
                                 />
                                 {phoneAutoFilled && formData.contactNumber && (
@@ -542,7 +542,7 @@ const BookingModal = ({ isOpen, onClose, resource, onSuccess }) => {
                                             setPhoneAutoFilled(false);
                                             setFormData(prev => ({ ...prev, contactNumber: '' }));
                                         }}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-blue-600 hover:text-blue-800 font-semibold"
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-blue-500 hover:text-blue-400 font-semibold"
                                     >
                                         Edit
                                     </button>
@@ -550,21 +550,21 @@ const BookingModal = ({ isOpen, onClose, resource, onSuccess }) => {
                             </div>
                             {errors.contactNumber && <p className="text-red-500 text-xs mt-0.5">{errors.contactNumber}</p>}
                             {!phoneAutoFilled && !formData.contactNumber && (
-                                <p className="text-slate-400 text-xs mt-0.5">Enter your 10-digit contact number</p>
+                                <p className="text-muted-foreground text-xs mt-0.5">Enter your 10-digit contact number</p>
                             )}
                         </div>
                         
                         {/* Date Selection */}
                         <div>
-                            <label className="block text-xs font-semibold text-slate-700 mb-1.5">Select Date <span className="text-red-500">*</span></label>
+                            <label className="block text-xs font-semibold text-muted-foreground mb-1.5">Select Date <span className="text-red-500">*</span></label>
                             <div className="relative">
-                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                                 <input
                                     type="date"
                                     value={selectedDate}
                                     onChange={handleDateChange}
                                     min={getTodayDate()}
-                                    className={`w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all ${errors.date ? 'border-red-500' : 'border-slate-200'}`}
+                                    className={`w-full pl-9 pr-3 py-2 text-sm bg-white/5 border rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-foreground ${errors.date ? 'border-red-500' : 'border-border'}`}
                                 />
                             </div>
                             {errors.date && <p className="text-red-500 text-xs mt-0.5">{errors.date}</p>}
@@ -573,7 +573,7 @@ const BookingModal = ({ isOpen, onClose, resource, onSuccess }) => {
                         {/* Time Selection */}
                         {isMeetingRoom ? (
                             <div>
-                                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                                <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
                                     Select Time Slot (2 Hours) <span className="text-red-500">*</span>
                                 </label>
                                 <div className="grid grid-cols-1 gap-2">
@@ -589,22 +589,22 @@ const BookingModal = ({ isOpen, onClose, resource, onSuccess }) => {
                                                 onClick={() => !isBooked && handleSlotSelect(slot.number, slot.start, slot.end)}
                                                 className={`flex items-center justify-between p-3 rounded-xl border-2 transition-all ${
                                                     isBooked 
-                                                        ? 'bg-red-50 border-red-200 text-red-400 cursor-not-allowed opacity-60'
+                                                        ? 'bg-red-500/5 border-red-500/20 text-red-400 cursor-not-allowed opacity-60'
                                                         : selected
-                                                            ? 'bg-blue-50 border-blue-500 text-blue-700 shadow-md'
-                                                            : 'bg-white border-slate-200 text-slate-700 hover:border-blue-300'
+                                                            ? 'bg-blue-500/10 border-blue-500 text-blue-400 shadow-lg shadow-blue-500/10'
+                                                            : 'bg-white/5 border-border text-foreground hover:border-blue-500/50'
                                                 }`}
                                             >
                                                 <div className="flex items-center space-x-3">
                                                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                                                        isBooked ? 'bg-red-100' : selected ? 'bg-blue-100' : 'bg-slate-100'
+                                                        isBooked ? 'bg-red-500/10' : selected ? 'bg-blue-500/10' : 'bg-white/5'
                                                     }`}>
-                                                        <Clock className={`w-5 h-5 ${isBooked ? 'text-red-400' : selected ? 'text-blue-600' : 'text-slate-400'}`} />
+                                                        <Clock className={`w-5 h-5 ${isBooked ? 'text-red-400' : selected ? 'text-blue-500' : 'text-muted-foreground'}`} />
                                                     </div>
                                                     <span className="font-semibold text-sm">{slot.label}</span>
                                                 </div>
                                                 <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${
-                                                    isBooked ? 'bg-red-100 text-red-600' : selected ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'
+                                                    isBooked ? 'bg-red-500/10 text-red-500' : selected ? 'bg-blue-500/10 text-blue-500' : 'bg-emerald-500/10 text-emerald-500'
                                                 }`}>
                                                     {isBooked ? 'BOOKED' : selected ? 'SELECTED' : 'AVAILABLE'}
                                                 </span>
@@ -616,18 +616,18 @@ const BookingModal = ({ isOpen, onClose, resource, onSuccess }) => {
                             </div>
                         ) : (
                             <div>
-                                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                                <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
                                     Select Time Period <span className="text-red-500">*</span>
                                 </label>
-                                <p className="text-xs text-slate-400 mb-3">Minimum 1 hour, maximum 4 hours</p>
+                                <p className="text-xs text-muted-foreground mb-3">Minimum 1 hour, maximum 4 hours</p>
                                 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-semibold text-slate-600 mb-1">Start Time <span className="text-red-500">*</span></label>
+                                        <label className="block text-xs font-semibold text-muted-foreground mb-1">Start Time <span className="text-red-500">*</span></label>
                                         <select
                                             value={formData.startTime}
                                             onChange={handleStartTimeChange}
-                                            className={`w-full px-3 py-2.5 text-sm bg-slate-50 border rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all ${errors.startTime ? 'border-red-500' : 'border-slate-200'}`}
+                                            className={`w-full px-3 py-2.5 text-sm bg-white/5 border rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-foreground ${errors.startTime ? 'border-red-500' : 'border-border'}`}
                                         >
                                             <option value="">Select start time</option>
                                             {availableStartTimes.map((option) => (
@@ -638,12 +638,12 @@ const BookingModal = ({ isOpen, onClose, resource, onSuccess }) => {
                                     </div>
                                     
                                     <div>
-                                        <label className="block text-xs font-semibold text-slate-600 mb-1">End Time <span className="text-red-500">*</span></label>
+                                        <label className="block text-xs font-semibold text-muted-foreground mb-1">End Time <span className="text-red-500">*</span></label>
                                         <select
                                             value={formData.endTime}
                                             onChange={handleEndTimeChange}
                                             disabled={!formData.startTime}
-                                            className={`w-full px-3 py-2.5 text-sm bg-slate-50 border rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed ${errors.endTime ? 'border-red-500' : 'border-slate-200'}`}
+                                            className={`w-full px-3 py-2.5 text-sm bg-white/5 border rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed text-foreground ${errors.endTime ? 'border-red-500' : 'border-border'}`}
                                         >
                                             <option value="">Select end time</option>
                                             {availableEndTimes.map((option) => (
@@ -657,16 +657,16 @@ const BookingModal = ({ isOpen, onClose, resource, onSuccess }) => {
                                 </div>
                                 
                                 {formData.startTime && formData.endTime && !errors.endTime && !errors.startTime && (
-                                    <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                    <div className="mt-3 bg-blue-500/5 border border-blue-500/20 rounded-lg p-3">
                                         <div className="flex items-center justify-between">
-                                            <span className="text-sm font-semibold text-blue-700">Selected Period:</span>
-                                            <span className="text-sm font-bold text-blue-800">
+                                            <span className="text-sm font-semibold text-blue-400">Selected Period:</span>
+                                            <span className="text-sm font-bold text-foreground">
                                                 {formatTimeDisplay(formData.startTime)} - {formatTimeDisplay(formData.endTime)}
                                             </span>
                                         </div>
                                         <div className="flex items-center justify-between mt-1">
-                                            <span className="text-sm font-semibold text-blue-700">Duration:</span>
-                                            <span className="text-sm font-bold text-blue-800">
+                                            <span className="text-sm font-semibold text-blue-400">Duration:</span>
+                                            <span className="text-sm font-bold text-foreground">
                                                 {(() => {
                                                     const [startHour, startMin] = formData.startTime.split(':').map(Number);
                                                     const [endHour, endMin] = formData.endTime.split(':').map(Number);
@@ -681,12 +681,12 @@ const BookingModal = ({ isOpen, onClose, resource, onSuccess }) => {
                                 )}
                                 
                                 {bookedSlots.length > 0 && (
-                                    <div className="mt-3 bg-slate-50 border border-slate-200 rounded-lg p-3">
-                                        <p className="text-xs font-semibold text-slate-600 mb-2">Already Booked Slots:</p>
+                                    <div className="mt-3 bg-white/5 border border-border rounded-lg p-3">
+                                        <p className="text-xs font-semibold text-muted-foreground mb-2">Already Booked Slots:</p>
                                         <div className="space-y-1">
                                             {bookedSlots.map((slot, index) => (
                                                 <div key={index} className="flex items-center justify-between text-xs">
-                                                    <span className="text-slate-500">
+                                                    <span className="text-muted-foreground">
                                                         {formatTimeDisplay(formatTimeForValue(slot.startTime))} - {formatTimeDisplay(formatTimeForValue(slot.endTime))}
                                                     </span>
                                                     <span className="text-red-500 font-semibold">BOOKED</span>
@@ -702,37 +702,37 @@ const BookingModal = ({ isOpen, onClose, resource, onSuccess }) => {
                         
                         {/* Purpose */}
                         <div>
-                            <label className="block text-xs font-semibold text-slate-700 mb-1.5">Purpose (Optional)</label>
+                            <label className="block text-xs font-semibold text-muted-foreground mb-1.5">Purpose (Optional)</label>
                             <div className="relative">
-                                <FileText className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+                                <FileText className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
                                 <textarea
                                     name="purpose"
                                     value={formData.purpose}
                                     onChange={handleChange}
                                     placeholder="Describe the purpose of booking..."
                                     rows="2"
-                                    className="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all resize-none"
+                                    className="w-full pl-9 pr-3 py-2 text-sm bg-white/5 border border-border rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all resize-none text-foreground placeholder:text-muted-foreground"
                                 />
                             </div>
                         </div>
                         
                         {/* Additional Members for Meeting Room */}
                         {isMeetingRoom && (
-                            <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
+                            <div className="bg-blue-500/5 rounded-lg p-4 border border-blue-500/20">
                                 <div className="flex items-center space-x-2 mb-3">
-                                    <Users className="w-5 h-5 text-indigo-600" />
-                                    <h3 className="text-sm font-bold text-indigo-900">Additional Members (4 required)</h3>
+                                    <Users className="w-5 h-5 text-blue-500" />
+                                    <h3 className="text-sm font-bold text-blue-400">Additional Members (4 required)</h3>
                                 </div>
                                 <div className="grid grid-cols-2 gap-3">
                                     {formData.additionalMembers.map((member, index) => (
                                         <div key={index}>
-                                            <label className="block text-xs font-semibold text-indigo-700 mb-1">Member {index + 1} ID <span className="text-red-500">*</span></label>
+                                            <label className="block text-xs font-semibold text-blue-400 mb-1">Member {index + 1} ID <span className="text-red-500">*</span></label>
                                             <input
                                                 type="text"
                                                 value={member}
                                                 onChange={(e) => handleMemberChange(index, e.target.value)}
                                                 placeholder={`Student ID ${index + 1}`}
-                                                className={`w-full px-3 py-2 text-sm bg-white border rounded-lg outline-none ${errors[`member${index}`] ? 'border-red-500' : 'border-indigo-200'}`}
+                                                className={`w-full px-3 py-2 text-sm bg-white/5 border rounded-lg outline-none text-foreground placeholder:text-muted-foreground ${errors[`member${index}`] ? 'border-red-500' : 'border-blue-500/20'}`}
                                             />
                                             {errors[`member${index}`] && <p className="text-red-500 text-xs mt-0.5">{errors[`member${index}`]}</p>}
                                         </div>
@@ -743,12 +743,12 @@ const BookingModal = ({ isOpen, onClose, resource, onSuccess }) => {
                         )}
                         
                         {/* Info Box */}
-                        <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
+                        <div className="bg-blue-500/5 rounded-lg p-3 border border-blue-500/20">
                             <div className="flex items-start space-x-2">
-                                <AlertCircle className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                                <div className="text-xs text-blue-800">
+                                <AlertCircle className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                                <div className="text-xs text-blue-400">
                                     <p className="font-semibold mb-0.5">Booking Information:</p>
-                                    <ul className="space-y-0.5 text-blue-700">
+                                    <ul className="space-y-0.5 text-blue-400/80">
                                         <li>• Resource: {resource.name}</li>
                                         <li>• Date: {selectedDate}</li>
                                         <li>• Type: {resource.type?.replace('_', ' ')}</li>
@@ -761,16 +761,16 @@ const BookingModal = ({ isOpen, onClose, resource, onSuccess }) => {
                         </div>
                         
                         {submitError && (
-                            <div className="bg-red-50 border border-red-200 rounded-lg p-2.5">
-                                <p className="text-red-700 text-xs">{submitError}</p>
+                            <div className="bg-red-500/5 border border-red-500/20 rounded-lg p-2.5">
+                                <p className="text-red-500 text-xs">{submitError}</p>
                             </div>
                         )}
                         
                         <div className="flex space-x-2 pt-2">
-                            <button type="button" onClick={handleClose} className="flex-1 px-3 py-2.5 text-sm border border-slate-300 text-slate-700 font-semibold rounded-lg hover:bg-slate-50 transition-colors">
+                            <button type="button" onClick={handleClose} className="flex-1 px-3 py-2.5 text-sm border border-border text-foreground font-semibold rounded-lg hover:bg-white/10 transition-colors">
                                 Cancel
                             </button>
-                            <button type="submit" disabled={loading} className="flex-1 px-3 py-2.5 text-sm bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50">
+                            <button type="submit" disabled={loading} className="flex-1 px-3 py-2.5 text-sm bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 border border-blue-500/20">
                                 {loading ? 'Booking...' : 'Confirm Booking'}
                             </button>
                         </div>
