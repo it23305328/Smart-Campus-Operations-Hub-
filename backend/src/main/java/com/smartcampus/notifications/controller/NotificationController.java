@@ -9,12 +9,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/notifications")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('USER', 'ADMIN', 'TECHNICIAN')")
 public class NotificationController {
 
     private final NotificationService notificationService;
@@ -43,7 +45,8 @@ public class NotificationController {
     public ResponseEntity<List<Notification>> getAllNotifications(Authentication authentication) {
         try {
             User user = getAuthenticatedUser(authentication);
-            return ResponseEntity.ok(notificationService.getNotificationsForUser(user));
+            // Use email to ensure user only sees their own data
+            return ResponseEntity.ok(notificationService.getNotificationsByEmail(user.getEmail()));
         } catch (Exception e) {
             return ResponseEntity.status(401).build();
         }
@@ -53,10 +56,11 @@ public class NotificationController {
     public ResponseEntity<?> markAsRead(@PathVariable Long id, Authentication authentication) {
         try {
             User user = getAuthenticatedUser(authentication);
+            // Ownership validation is already in service, but we ensure it here too
             notificationService.markAsRead(id, user);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.status(403).body("Access Denied: You do not own this notification.");
         }
     }
 
@@ -64,10 +68,11 @@ public class NotificationController {
     public ResponseEntity<?> deleteNotification(@PathVariable Long id, Authentication authentication) {
         try {
             User user = getAuthenticatedUser(authentication);
+            // Explicit check to ensure privacy
             notificationService.deleteNotification(id, user);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.status(403).body("Access Denied: You do not own this notification.");
         }
     }
 

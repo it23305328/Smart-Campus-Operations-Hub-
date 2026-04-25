@@ -23,14 +23,14 @@ public class NotificationPreference {
     private User user;
 
     @Builder.Default
-    @Column(name = "booking_enabled")
-    private boolean bookingEnabled = true;
+    @Column(name = "enable_booking_notifications")
+    private boolean enableBookingNotifications = true;
 
     @Builder.Default
-    @Column(name = "ticket_enabled")
-    private boolean ticketEnabled = true;
+    @Column(name = "enable_ticket_notifications")
+    private boolean enableTicketNotifications = true;
 
     @Builder.Default
-    @Column(name = "comment_enabled")
-    private boolean commentEnabled = true;
+    @Column(name = "enable_comment_notifications")
+    private boolean enableCommentNotifications = true;
 }

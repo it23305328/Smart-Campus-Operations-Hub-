@@ -32,9 +32,9 @@ public class NotificationService {
                 });
 
         boolean enabled = switch (type) {
-            case BOOKING -> prefs.isBookingEnabled();
-            case TICKET -> prefs.isTicketEnabled();
-            case COMMENT -> prefs.isCommentEnabled();
+            case BOOKING -> prefs.isEnableBookingNotifications();
+            case TICKET -> prefs.isEnableTicketNotifications();
+            case COMMENT -> prefs.isEnableCommentNotifications();
         };
 
         if (enabled) {
@@ -57,6 +57,10 @@ public class NotificationService {
 
     public List<Notification> getNotificationsForUser(User user) {
         return notificationRepository.findByRecipientOrderByCreatedAtDesc(user);
+    }
+
+    public List<Notification> getNotificationsByEmail(String email) {
+        return notificationRepository.findByRecipientEmailOrderByCreatedAtDesc(email);
     }
 
     @Transactional

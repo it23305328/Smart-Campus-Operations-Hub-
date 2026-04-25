@@ -11,14 +11,21 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
+import com.smartcampus.notifications.model.NotificationPreference;
+import com.smartcampus.notifications.service.NotificationService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
 
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
-    public UserController(UserRepository userRepository) {
+    public UserController(UserRepository userRepository, NotificationService notificationService) {
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
     }
 
     @GetMapping("/me")
@@ -64,6 +71,28 @@ public class UserController {
                 userRepository.save(user);
             }
             return ResponseEntity.ok(user);
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/profile/notifications")
+    public ResponseEntity<?> updateNotificationPreferences(@RequestBody NotificationPreference preferences, Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body("Not authenticated");
+        }
+        
+        Object principal = authentication.getPrincipal();
+        String email;
+        if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
+            email = ((org.springframework.security.core.userdetails.UserDetails) principal).getUsername();
+        } else if (principal instanceof com.smartcampus.users.User) {
+            email = ((com.smartcampus.users.User) principal).getEmail();
+        } else {
+            email = principal.toString();
+        }
+        
+        return userRepository.findByEmail(email).map(user -> {
+            NotificationPreference updated = notificationService.updatePreferences(user, preferences);
+            return ResponseEntity.ok(updated);
         }).orElse(ResponseEntity.notFound().build());
     }
 }
