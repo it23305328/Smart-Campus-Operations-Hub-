@@ -1,17 +1,23 @@
 // AdminResourceManagement.jsx
 import React, { useState, useEffect } from 'react';
 import resourceService from '../../services/resourceService';
-import { Plus, Edit2, Trash2, X, Eye, Clock } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Eye, Clock, Search, Filter, AlertCircle } from 'lucide-react';
 import ResourceDetailsModal from './ResourceDetailsModal';
 import { motion } from 'framer-motion';
 
 const AdminResourceManagement = () => {
     const [resources, setResources] = useState([]);
+    const [filteredResources, setFilteredResources] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
     const [selectedResource, setSelectedResource] = useState(null);
     const [editingResource, setEditingResource] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filterType, setFilterType] = useState('ALL');
+    const [filterStatus, setFilterStatus] = useState('ALL');
+    const [showFilters, setShowFilters] = useState(false);
+    const [errors, setErrors] = useState({});
     const [formData, setFormData] = useState({
         name: '',
         type: 'LECTURE_HALL',
@@ -27,6 +33,10 @@ const AdminResourceManagement = () => {
         fetchResources();
     }, []);
 
+    useEffect(() => {
+        filterResources();
+    }, [resources, searchTerm, filterType, filterStatus]);
+
     const fetchResources = async () => {
         try {
             setLoading(true);
@@ -39,6 +49,117 @@ const AdminResourceManagement = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const filterResources = () => {
+        let filtered = [...resources];
+
+        // Apply search filter
+        if (searchTerm.trim()) {
+            const searchLower = searchTerm.toLowerCase().trim();
+            filtered = filtered.filter(resource => 
+                resource.name?.toLowerCase().includes(searchLower) ||
+                resource.location?.toLowerCase().includes(searchLower) ||
+                resource.type?.toLowerCase().includes(searchLower)
+            );
+        }
+
+        // Apply type filter
+        if (filterType !== 'ALL') {
+            filtered = filtered.filter(resource => resource.type === filterType);
+        }
+
+        // Apply status filter
+        if (filterStatus !== 'ALL') {
+            filtered = filtered.filter(resource => resource.status === filterStatus);
+        }
+
+        setFilteredResources(filtered);
+    };
+
+    // Validation function
+    const validateForm = () => {
+        const newErrors = {};
+
+        // Validate Resource Name - must contain only letters and spaces (no numbers or special characters)
+        if (!formData.name.trim()) {
+            newErrors.name = 'Resource name is required';
+        } else if (!/^[a-zA-Z\s]+$/.test(formData.name.trim())) {
+            newErrors.name = 'Resource name must contain only letters and spaces. Numbers and special characters are not allowed.';
+        } else if (formData.name.trim().length < 2) {
+            newErrors.name = 'Resource name must be at least 2 characters long';
+        } else if (formData.name.trim().length > 100) {
+            newErrors.name = 'Resource name must not exceed 100 characters';
+        }
+
+        // Validate Location - must contain at least one letter and only allowed characters
+        if (!formData.location.trim()) {
+            newErrors.location = 'Location is required';
+        } else {
+            const trimmedLocation = formData.location.trim();
+            
+            // Check if location contains only numbers
+            if (/^\d+$/.test(trimmedLocation)) {
+                newErrors.location = 'Location cannot consist of only numbers. Please include a descriptive location name.';
+            }
+            // Check if location contains only special characters
+            else if (/^[^a-zA-Z0-9]+$/.test(trimmedLocation)) {
+                newErrors.location = 'Location cannot consist of only special characters. Please include a descriptive location name.';
+            }
+            // Check if location contains at least one letter
+            else if (!/[a-zA-Z]/.test(trimmedLocation)) {
+                newErrors.location = 'Location must contain at least one letter.';
+            }
+            // Check allowed characters
+            else if (!/^[a-zA-Z0-9\s,.\-/'()]+$/.test(trimmedLocation)) {
+                newErrors.location = 'Location can only contain letters, numbers, spaces, commas, periods, hyphens, slashes, apostrophes, and parentheses.';
+            }
+            // Check minimum length
+            else if (trimmedLocation.length < 2) {
+                newErrors.location = 'Location must be at least 2 characters long';
+            }
+            // Check maximum length
+            else if (trimmedLocation.length > 200) {
+                newErrors.location = 'Location must not exceed 200 characters';
+            }
+        }
+
+        // Validate Capacity based on resource type
+        if (formData.capacity) {
+            const capacityNum = parseInt(formData.capacity);
+            
+            if (isNaN(capacityNum) || capacityNum < 1) {
+                newErrors.capacity = 'Capacity must be a positive number';
+            } else if (formData.type === 'LECTURE_HALL' && capacityNum > 120) {
+                newErrors.capacity = 'Lecture Hall capacity must not exceed 120';
+            } else if (formData.type === 'MEETING_ROOM' && capacityNum > 50) {
+                newErrors.capacity = 'Meeting Room capacity must not exceed 50';
+            } else if (formData.type === 'LAB' && capacityNum > 80) {
+                newErrors.capacity = 'Lab capacity must not exceed 80';
+            } else if (capacityNum > 1000) {
+                newErrors.capacity = 'Capacity must not exceed 1000';
+            }
+        }
+
+        // Validate Available Time
+        if (formData.availableFrom && formData.availableTo) {
+            if (formData.availableFrom >= formData.availableTo) {
+                newErrors.availableTo = 'End time must be after start time';
+            }
+        }
+
+        // Validate Meeting Room specific rules
+        if (formData.type === 'MEETING_ROOM') {
+            if (formData.availableFrom < '09:00') {
+                newErrors.availableFrom = 'Meeting rooms cannot be available before 9:00 AM';
+            }
+            if (formData.availableTo > '19:00') {
+                newErrors.availableTo = 'Meeting rooms cannot be available after 7:00 PM';
+            }
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
     };
 
     const handleInputChange = (e) => {
@@ -62,6 +183,15 @@ const AdminResourceManagement = () => {
             
             return newData;
         });
+
+        // Clear error for the changed field
+        if (errors[name]) {
+            setErrors(prev => {
+                const newErrors = { ...prev };
+                delete newErrors[name];
+                return newErrors;
+            });
+        }
     };
 
     const resetForm = () => {
@@ -76,6 +206,13 @@ const AdminResourceManagement = () => {
             availabilityWindows: ''
         });
         setEditingResource(null);
+        setErrors({});
+    };
+
+    const clearFilters = () => {
+        setSearchTerm('');
+        setFilterType('ALL');
+        setFilterStatus('ALL');
     };
 
     const formatTimeForDisplay = (timeStr) => {
@@ -111,6 +248,7 @@ const AdminResourceManagement = () => {
     };
 
     const openModal = (resource = null) => {
+        setErrors({});
         if (resource) {
             setEditingResource(resource);
             console.log('Editing resource:', resource);
@@ -132,6 +270,12 @@ const AdminResourceManagement = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        // Validate form before submission
+        if (!validateForm()) {
+            return;
+        }
+
         try {
             const submitData = {
                 name: formData.name,
@@ -178,6 +322,7 @@ const AdminResourceManagement = () => {
 
     const isMeetingRoom = formData.type === 'MEETING_ROOM';
     const types = ['LECTURE_HALL', 'LAB', 'MEETING_ROOM', 'EQUIPMENT'];
+    const statuses = ['ACTIVE', 'OUT_OF_SERVICE'];
 
     // Generate meeting room slots display
     const meetingRoomSlots = [
@@ -202,6 +347,22 @@ const AdminResourceManagement = () => {
             opacity: 1,
             y: 0,
             transition: { duration: 0.5, ease: "easeOut" }
+        }
+    };
+
+    const hasActiveFilters = searchTerm || filterType !== 'ALL' || filterStatus !== 'ALL';
+
+    // Get capacity placeholder based on resource type
+    const getCapacityPlaceholder = () => {
+        switch(formData.type) {
+            case 'LECTURE_HALL':
+                return 'Max 120';
+            case 'MEETING_ROOM':
+                return 'Max 50';
+            case 'LAB':
+                return 'Max 80';
+            default:
+                return 'Enter capacity';
         }
     };
 
@@ -235,6 +396,112 @@ const AdminResourceManagement = () => {
                     </button>
                 </motion.div>
 
+                {/* Search and Filter Bar */}
+                <motion.div 
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-8 glass-glow rounded-2xl border border-border p-6"
+                >
+                    <div className="flex flex-col lg:flex-row gap-4">
+                        {/* Search Input */}
+                        <div className="flex-1 relative">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                            <input
+                                type="text"
+                                placeholder="Search resources by name, location, or type..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full pl-12 pr-4 py-4 bg-white/5 border-2 border-border rounded-2xl focus:ring-0 focus:border-blue-500 outline-none transition-all font-semibold text-foreground placeholder:text-muted-foreground"
+                            />
+                            {searchTerm && (
+                                <button
+                                    onClick={() => setSearchTerm('')}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-white/10 rounded-full transition-colors"
+                                >
+                                    <X className="w-4 h-4 text-muted-foreground" />
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Filter Toggle Button */}
+                        <button
+                            onClick={() => setShowFilters(!showFilters)}
+                            className={`flex items-center gap-2 px-6 py-4 rounded-2xl font-bold transition-all border-2 ${
+                                showFilters || hasActiveFilters
+                                    ? 'bg-blue-500/10 border-blue-500/30 text-blue-500'
+                                    : 'bg-white/5 border-border text-muted-foreground hover:border-blue-500/30'
+                            }`}
+                        >
+                            <Filter className="w-5 h-5" />
+                            Filters
+                            {hasActiveFilters && (
+                                <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                            )}
+                        </button>
+                    </div>
+
+                    {/* Expandable Filter Options */}
+                    {showFilters && (
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="mt-4 pt-4 border-t border-border"
+                        >
+                            <div className="flex flex-col sm:flex-row gap-4">
+                                <div className="flex-1 space-y-2">
+                                    <label className="text-sm font-bold text-muted-foreground ml-1 tracking-widest uppercase">Resource Type</label>
+                                    <select
+                                        value={filterType}
+                                        onChange={(e) => setFilterType(e.target.value)}
+                                        className="w-full px-4 py-3 bg-white/5 border-2 border-border rounded-xl focus:ring-0 focus:border-blue-500 outline-none transition-all font-semibold text-foreground"
+                                    >
+                                        <option value="ALL">All Types</option>
+                                        {types.map(type => (
+                                            <option key={type} value={type}>{type.replace('_', ' ')}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="flex-1 space-y-2">
+                                    <label className="text-sm font-bold text-muted-foreground ml-1 tracking-widest uppercase">Status</label>
+                                    <select
+                                        value={filterStatus}
+                                        onChange={(e) => setFilterStatus(e.target.value)}
+                                        className="w-full px-4 py-3 bg-white/5 border-2 border-border rounded-xl focus:ring-0 focus:border-blue-500 outline-none transition-all font-semibold text-foreground"
+                                    >
+                                        <option value="ALL">All Statuses</option>
+                                        {statuses.map(status => (
+                                            <option key={status} value={status}>{status.replace('_', ' ')}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                            {hasActiveFilters && (
+                                <div className="mt-4 flex justify-end">
+                                    <button
+                                        onClick={clearFilters}
+                                        className="px-4 py-2 text-sm font-bold text-red-500 hover:bg-red-500/10 rounded-xl transition-all border border-transparent hover:border-red-500/20"
+                                    >
+                                        Clear All Filters
+                                    </button>
+                                </div>
+                            )}
+                        </motion.div>
+                    )}
+                </motion.div>
+
+                {/* Results Summary */}
+                {!loading && (
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="mb-4 text-muted-foreground font-medium"
+                    >
+                        Showing {filteredResources.length} of {resources.length} resources
+                        {hasActiveFilters && ' (filtered)'}
+                    </motion.div>
+                )}
+
                 <motion.div 
                     variants={containerVariants}
                     initial="hidden"
@@ -259,8 +526,8 @@ const AdminResourceManagement = () => {
                                             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
                                         </td>
                                     </tr>
-                                ) : resources.length > 0 ? (
-                                    resources.map((resource) => {
+                                ) : filteredResources.length > 0 ? (
+                                    filteredResources.map((resource) => {
                                         console.log('Resource data:', resource);
                                         const isMeetingRoomType = resource.type === 'MEETING_ROOM';
                                         const fromTime = formatTimeForDisplay(resource.availableFrom);
@@ -358,7 +625,18 @@ const AdminResourceManagement = () => {
                                 ) : (
                                     <tr>
                                         <td colSpan="5" className="py-20 text-center">
-                                            <p className="text-xl font-semibold text-muted-foreground">No resources found</p>
+                                            <div className="flex flex-col items-center gap-4">
+                                                <Search className="w-12 h-12 text-muted-foreground opacity-50" />
+                                                <p className="text-xl font-semibold text-muted-foreground">No resources found</p>
+                                                {hasActiveFilters && (
+                                                    <button
+                                                        onClick={clearFilters}
+                                                        className="text-blue-500 hover:text-blue-400 font-semibold transition-colors"
+                                                    >
+                                                        Clear filters and try again
+                                                    </button>
+                                                )}
+                                            </div>
                                         </td>
                                     </tr>
                                 )}
@@ -383,16 +661,26 @@ const AdminResourceManagement = () => {
                         <form onSubmit={handleSubmit} className="p-10 space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-bold text-muted-foreground ml-1 tracking-widest uppercase">Resource Name *</label>
+                                    <label className="text-sm font-bold text-muted-foreground ml-1 tracking-widest uppercase">
+                                        Resource Name *
+                                    </label>
                                     <input
                                         required
                                         type="text"
                                         name="name"
                                         value={formData.name}
                                         onChange={handleInputChange}
-                                        className="w-full px-6 py-4 bg-white/5 border-2 border-border rounded-2xl focus:ring-0 focus:border-blue-500 outline-none transition-all font-semibold text-foreground placeholder:text-muted-foreground"
-                                        placeholder="e.g. Main Auditorium"
+                                        className={`w-full px-6 py-4 bg-white/5 border-2 rounded-2xl focus:ring-0 outline-none transition-all font-semibold text-foreground placeholder:text-muted-foreground ${
+                                            errors.name ? 'border-red-500 focus:border-red-500' : 'border-border focus:border-blue-500'
+                                        }`}
+                                        placeholder="e.g. Main Auditorium (letters and spaces only)"
                                     />
+                                    {errors.name && (
+                                        <div className="flex items-center gap-2 text-red-500 text-sm font-medium ml-1">
+                                            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                                            <span>{errors.name}</span>
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-bold text-muted-foreground ml-1 tracking-widest uppercase">Type *</label>
@@ -406,26 +694,56 @@ const AdminResourceManagement = () => {
                                     </select>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-bold text-muted-foreground ml-1 tracking-widest uppercase">Capacity</label>
+                                    <label className="text-sm font-bold text-muted-foreground ml-1 tracking-widest uppercase">
+                                        Capacity *
+                                    </label>
                                     <input
                                         type="number"
                                         name="capacity"
                                         value={formData.capacity}
                                         onChange={handleInputChange}
-                                        className="w-full px-6 py-4 bg-white/5 border-2 border-border rounded-2xl focus:ring-0 focus:border-blue-500 outline-none transition-all font-semibold text-foreground placeholder:text-muted-foreground"
-                                        placeholder="0"
+                                        className={`w-full px-6 py-4 bg-white/5 border-2 rounded-2xl focus:ring-0 outline-none transition-all font-semibold text-foreground placeholder:text-muted-foreground ${
+                                            errors.capacity ? 'border-red-500 focus:border-red-500' : 'border-border focus:border-blue-500'
+                                        }`}
+                                        placeholder={getCapacityPlaceholder()}
+                                        min="1"
                                     />
+                                    {formData.type === 'LECTURE_HALL' && !errors.capacity && (
+                                        <p className="text-xs text-blue-500 ml-1">Maximum capacity for Lecture Hall: 120</p>
+                                    )}
+                                    {formData.type === 'MEETING_ROOM' && !errors.capacity && (
+                                        <p className="text-xs text-blue-500 ml-1">Maximum capacity for Meeting Room: 50</p>
+                                    )}
+                                    {formData.type === 'LAB' && !errors.capacity && (
+                                        <p className="text-xs text-blue-500 ml-1">Maximum capacity for Lab: 80</p>
+                                    )}
+                                    {errors.capacity && (
+                                        <div className="flex items-center gap-2 text-red-500 text-sm font-medium ml-1">
+                                            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                                            <span>{errors.capacity}</span>
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-bold text-muted-foreground ml-1 tracking-widest uppercase">Location</label>
+                                    <label className="text-sm font-bold text-muted-foreground ml-1 tracking-widest uppercase">
+                                        Location *
+                                    </label>
                                     <input
                                         type="text"
                                         name="location"
                                         value={formData.location}
                                         onChange={handleInputChange}
-                                        className="w-full px-6 py-4 bg-white/5 border-2 border-border rounded-2xl focus:ring-0 focus:border-blue-500 outline-none transition-all font-semibold text-foreground placeholder:text-muted-foreground"
-                                        placeholder="e.g. Ground Floor"
+                                        className={`w-full px-6 py-4 bg-white/5 border-2 rounded-2xl focus:ring-0 outline-none transition-all font-semibold text-foreground placeholder:text-muted-foreground ${
+                                            errors.location ? 'border-red-500 focus:border-red-500' : 'border-border focus:border-blue-500'
+                                        }`}
+                                        placeholder="e.g. Ground Floor, Building A"
                                     />
+                                    {errors.location && (
+                                        <div className="flex items-center gap-2 text-red-500 text-sm font-medium ml-1">
+                                            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                                            <span>{errors.location}</span>
+                                        </div>
+                                    )}
                                 </div>
                                 
                                 {/* Time Configuration */}
@@ -441,11 +759,19 @@ const AdminResourceManagement = () => {
                                             value={formData.availableFrom}
                                             onChange={handleInputChange}
                                             required
-                                            className="w-full pl-12 pr-6 py-4 bg-white/5 border-2 border-border rounded-2xl focus:ring-0 focus:border-blue-500 outline-none transition-all font-semibold text-foreground"
+                                            className={`w-full pl-12 pr-6 py-4 bg-white/5 border-2 rounded-2xl focus:ring-0 outline-none transition-all font-semibold text-foreground ${
+                                                errors.availableFrom ? 'border-red-500 focus:border-red-500' : 'border-border focus:border-blue-500'
+                                            }`}
                                         />
                                     </div>
-                                    {!isMeetingRoom && (
+                                    {!isMeetingRoom && !errors.availableFrom && (
                                         <p className="text-xs text-muted-foreground ml-1">Default: 8:00 AM</p>
+                                    )}
+                                    {errors.availableFrom && (
+                                        <div className="flex items-center gap-2 text-red-500 text-sm font-medium ml-1">
+                                            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                                            <span>{errors.availableFrom}</span>
+                                        </div>
                                     )}
                                 </div>
                                 <div className="space-y-2">
@@ -460,11 +786,19 @@ const AdminResourceManagement = () => {
                                             value={formData.availableTo}
                                             onChange={handleInputChange}
                                             required
-                                            className="w-full pl-12 pr-6 py-4 bg-white/5 border-2 border-border rounded-2xl focus:ring-0 focus:border-blue-500 outline-none transition-all font-semibold text-foreground"
+                                            className={`w-full pl-12 pr-6 py-4 bg-white/5 border-2 rounded-2xl focus:ring-0 outline-none transition-all font-semibold text-foreground ${
+                                                errors.availableTo ? 'border-red-500 focus:border-red-500' : 'border-border focus:border-blue-500'
+                                            }`}
                                         />
                                     </div>
-                                    {!isMeetingRoom && (
+                                    {!isMeetingRoom && !errors.availableTo && (
                                         <p className="text-xs text-muted-foreground ml-1">Default: 8:00 PM</p>
+                                    )}
+                                    {errors.availableTo && (
+                                        <div className="flex items-center gap-2 text-red-500 text-sm font-medium ml-1">
+                                            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                                            <span>{errors.availableTo}</span>
+                                        </div>
                                     )}
                                 </div>
                                 
@@ -504,6 +838,22 @@ const AdminResourceManagement = () => {
                                     </select>
                                 </div>
                             </div>
+                            
+                            {/* Display all validation errors at the top of submit button if any */}
+                            {Object.keys(errors).length > 0 && (
+                                <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-4">
+                                    <div className="flex items-center gap-2 text-red-500 font-bold mb-2">
+                                        <AlertCircle className="w-5 h-5" />
+                                        <span>Please fix the following errors:</span>
+                                    </div>
+                                    <ul className="list-disc list-inside space-y-1">
+                                        {Object.values(errors).map((error, index) => (
+                                            <li key={index} className="text-red-500 text-sm ml-6">{error}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                            
                             <div className="pt-8 border-t border-border">
                                 <button
                                     type="submit"
