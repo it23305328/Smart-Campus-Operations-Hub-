@@ -37,7 +37,7 @@ const LandingPage = () => {
             </header>
 
             {/* Hero Section */}
-            <main className="flex-1 flex flex-col justify-center max-w-7xl mx-auto px-6 pt-12 pb-20 w-full overflow-hidden">
+            <main id="products" className="flex-1 flex flex-col justify-center max-w-7xl mx-auto px-6 pt-12 pb-20 w-full overflow-hidden">
                 <div className="flex flex-col-reverse lg:flex-row items-center gap-12 lg:gap-8 min-h-[70vh]">
                     {/* Left Content */}
                     <div className="flex-1 flex flex-col items-center text-center lg:items-start lg:text-left space-y-6 lg:pr-12">
@@ -89,7 +89,7 @@ const LandingPage = () => {
             </main>
 
             {/* Sub-hero Section */}
-            <section className="bg-white py-24 border-t border-slate-100 relative overflow-hidden">
+            <section id="resources" className="bg-white py-24 border-t border-slate-100 relative overflow-hidden">
                 <div className="absolute left-0 top-0 w-full h-px bg-gradient-to-r from-transparent via-blue-200 to-transparent"></div>
                 <div className="max-w-5xl mx-auto px-6 text-center space-y-6 relative z-10">
                     <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">
