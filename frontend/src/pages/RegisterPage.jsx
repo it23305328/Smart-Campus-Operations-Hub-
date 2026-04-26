@@ -57,7 +57,7 @@ const RegisterPage = () => {
                 </div>
                 
                 {error && (
-                    <div className="bg-red-50 text-red-500 p-3 rounded-lg text-sm text-center">
+                    <div role="alert" aria-live="polite" className="bg-red-50 text-red-500 p-3 rounded-lg text-sm text-center">
                         {error}
                     </div>
                 )}
@@ -70,6 +70,7 @@ const RegisterPage = () => {
                                 id="name"
                                 name="name"
                                 type="text"
+                                autoComplete="name"
                                 required
                                 className="appearance-none rounded-lg relative block w-full px-4 py-3 border border-slate-300 placeholder-slate-400 text-slate-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                                 placeholder="John Doe"
@@ -97,6 +98,7 @@ const RegisterPage = () => {
                                 id="password"
                                 name="password"
                                 type="password"
+                                autoComplete="new-password"
                                 required
                                 className="appearance-none rounded-lg relative block w-full px-4 py-3 border border-slate-300 placeholder-slate-400 text-slate-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                                 placeholder="••••••••"
@@ -110,6 +112,7 @@ const RegisterPage = () => {
                                 id="confirmPassword"
                                 name="confirmPassword"
                                 type="password"
+                                autoComplete="new-password"
                                 required
                                 className="appearance-none rounded-lg relative block w-full px-4 py-3 border border-slate-300 placeholder-slate-400 text-slate-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                                 placeholder="••••••••"
@@ -145,6 +148,7 @@ const RegisterPage = () => {
                         <button
                             type="button"
                             onClick={loginWithGoogle}
+                            aria-label="Sign up with Google"
                             className="w-full flex items-center justify-center px-4 py-3 border border-slate-300 rounded-lg shadow-sm bg-white text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                         >
                             <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
