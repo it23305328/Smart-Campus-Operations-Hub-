@@ -13,8 +13,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity
-@Table(name = "tickets")
+@Entity(name = "IncidentTicket")
+@Table(name = "incident_tickets")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

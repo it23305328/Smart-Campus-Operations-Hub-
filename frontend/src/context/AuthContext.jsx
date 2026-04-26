@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }) => {
         }
     };
     const loginWithGoogle = () => {
-        window.location.href = 'http://localhost:8083/oauth2/authorization/google';
+        window.location.href = 'http://localhost:8080/oauth2/authorization/google';
     };
     const logout = async () => {
         try {

@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 
+/**
+ * AdminDashboard: User Management Interface
+ * Allows Admins to fetch a list of all users, update their roles, or delete accounts.
+ */
 const AdminDashboard = () => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -9,7 +13,7 @@ const AdminDashboard = () => {
     const [editRole, setEditRole] = useState("");
 
     const handleDeleteUser = async (id) => {
-        if (!window.confirm("Are you sure you want to delete this user?")) return;
+        if (!window.confirm("Are you sure you want to delete this user? This action is permanent.")) return;
         try {
             await api.delete(`/api/admin/users/${id}`);
             setUsers(users.filter(user => user.id !== id));
@@ -45,107 +49,119 @@ const AdminDashboard = () => {
                 const response = await api.get('/api/admin/users');
                 setUsers(response.data);
             } catch (err) {
-                setError(err.response?.data?.message || 'Failed to fetch users.');
+                setError(err.response?.data?.message || 'Failed to fetch users. Ensure you have administrative privileges.');
                 console.error("Error fetching users:", err);
             } finally {
                 setLoading(false);
             }
         };
-
         fetchUsers();
     }, []);
 
-    if (loading) return <div className="text-center p-12 text-slate-500">Loading users...</div>;
+    if (loading) return (
+        <div className="flex flex-col items-center justify-center min-h-[400px] text-slate-500 font-bold">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
+            Initializing Management Console...
+        </div>
+    );
 
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="p-6 border-b border-slate-200 bg-slate-50">
-                <h2 className="text-xl font-bold text-slate-800">User Management</h2>
-                <p className="text-sm text-slate-500 mt-1">View and manage all registered campus users, their roles, and access status.</p>
+        <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+            {/* Dashboard Header */}
+            <div className="p-8 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+                <div>
+                    <h2 className="text-2xl font-black text-slate-800">User Management</h2>
+                    <p className="text-slate-500 text-sm">Assign roles, manage status, and audit system access.</p>
+                </div>
+                <div className="bg-indigo-600 text-white px-5 py-1.5 rounded-full text-xs font-black shadow-lg shadow-indigo-200 uppercase tracking-widest">
+                    {users.length} Total Records
+                </div>
             </div>
-            
+
+            {/* Error Notification */}
             {error && (
-                <div className="p-4 bg-red-50 border-b border-red-100 text-red-600 text-sm">
-                    {error}
+                <div className="m-6 p-4 bg-red-50 text-red-600 rounded-lg border border-red-100 text-sm font-medium flex items-center gap-2">
+                    <span>⚠️</span> {error}
                 </div>
             )}
 
+            {/* User Data Table */}
             <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-slate-200">
-                    <thead className="bg-slate-100">
+                    <thead className="bg-slate-50">
                         <tr>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">ID</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Name & Email</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Role & Status</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Security Audit</th>
-                            <th scope="col" className="px-6 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Actions</th>
+                            <th className="px-8 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">User Identity</th>
+                            <th className="px-8 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">Access & Status</th>
+                            <th className="px-8 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">Security Audit</th>
+                            <th className="px-8 py-4 text-right text-xs font-bold text-slate-400 uppercase tracking-widest">Operations</th>
                         </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-slate-200">
-                        {users.length === 0 && !error ? (
-                            <tr>
-                                <td colSpan="5" className="px-6 py-8 text-center text-sm text-slate-500">
-                                    No users found in the system.
+                    <tbody className="divide-y divide-slate-100">
+                        {users.map((user) => (
+                            <tr key={user.id} className="hover:bg-slate-50/50 transition-colors">
+                                <td className="px-8 py-5">
+                                    <div className="font-bold text-slate-800">{user.name}</div>
+                                    <div className="text-xs text-slate-500 font-mono italic">ID: {user.id} — {user.email}</div>
+                                </td>
+                                <td className="px-8 py-5">
+                                    <div className="flex flex-col gap-2">
+                                        {editingUserId === user.id ? (
+                                            <select
+                                                value={editRole}
+                                                onChange={(e) => setEditRole(e.target.value)}
+                                                className="border-2 border-indigo-500 rounded-md px-2 py-1 text-sm outline-none bg-indigo-50 font-bold"
+                                            >
+                                                <option value="USER">USER</option>
+                                                <option value="ADMIN">ADMIN</option>
+                                                <option value="TECHNICIAN">TECHNICIAN</option>
+                                            </select>
+                                        ) : (
+                                            <span className={`w-fit px-3 py-1 text-[10px] font-black rounded-full text-white shadow-sm
+                                                ${user.role === 'ADMIN' ? 'bg-emerald-500' : user.role === 'TECHNICIAN' ? 'bg-amber-500' : 'bg-blue-500'}`}>
+                                                {user.role}
+                                            </span>
+                                        )}
+                                        <span className={`w-fit px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-full border
+                                            ${user.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-600 border-rose-100'}`}>
+                                            {user.status || 'ACTIVE'}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td className="px-8 py-5">
+                                    <div className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">IP: {user.ipAddress || 'Not recorded'}</div>
+                                    <div className="text-[10px] text-slate-400 mt-1">Last: {user.lastLogin ? new Date(user.lastLogin).toLocaleString() : 'Never'}</div>
+                                </td>
+                                <td className="px-8 py-5 text-right space-x-3">
+                                    {editingUserId === user.id ? (
+                                        <div className="flex justify-end gap-2">
+                                            <button onClick={() => handleRoleChange(user.id, editRole)} className="text-emerald-600 font-black text-xs hover:underline decoration-2">SAVE</button>
+                                            <button onClick={() => setEditingUserId(null)} className="text-slate-400 font-black text-xs hover:underline decoration-2">CANCEL</button>
+                                        </div>
+                                    ) : (
+                                        <div className="flex justify-end gap-3 font-black text-[11px]">
+                                            <button
+                                                onClick={() => { setEditingUserId(user.id); setEditRole(user.role); }}
+                                                className="text-indigo-600 hover:underline decoration-2"
+                                            >
+                                                ROLE
+                                            </button>
+                                            <button
+                                                onClick={() => handleStatusToggle(user.id, user.status)}
+                                                className={user.status === 'ACTIVE' ? 'text-amber-500 hover:underline decoration-2' : 'text-emerald-500 hover:underline decoration-2'}
+                                            >
+                                                {user.status === 'ACTIVE' ? 'DEACTIVATE' : 'ACTIVATE'}
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeleteUser(user.id)}
+                                                className="text-red-500 hover:underline decoration-2"
+                                            >
+                                                DELETE
+                                            </button>
+                                        </div>
+                                    )}
                                 </td>
                             </tr>
-                        ) : (
-                            users.map((user) => (
-                                <tr key={user.id} className="hover:bg-slate-50 transition-colors">
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">#{user.id}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm font-medium text-slate-900">{user.name}</div>
-                                        <div className="text-xs text-slate-500">{user.email}</div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex flex-col gap-1">
-                                            {editingUserId === user.id ? (
-                                                <select 
-                                                    value={editRole} 
-                                                    onChange={(e) => setEditRole(e.target.value)}
-                                                    className="border border-slate-300 rounded px-2 py-1 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
-                                                >
-                                                    <option value="USER">USER</option>
-                                                    <option value="ADMIN">ADMIN</option>
-                                                    <option value="TECHNICIAN">TECHNICIAN</option>
-                                                </select>
-                                            ) : (
-                                                <span className={`w-fit px-2 inline-flex text-[10px] leading-5 font-black uppercase tracking-wider rounded-full 
-                                                    ${user.role === 'ADMIN' ? 'bg-emerald-100 text-emerald-800' : 
-                                                      user.role === 'TECHNICIAN' ? 'bg-amber-100 text-amber-800' : 
-                                                      'bg-blue-100 text-blue-800'}`}>
-                                                    {user.role}
-                                                </span>
-                                            )}
-                                            <span className={`w-fit px-2 inline-flex text-[10px] leading-5 font-black uppercase tracking-wider rounded-full ${user.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
-                                                {user.status}
-                                            </span>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-[10px] font-bold text-slate-500 uppercase">IP: {user.ipAddress || 'None'}</div>
-                                        <div className="text-[10px] text-slate-400">{user.lastLogin ? new Date(user.lastLogin).toLocaleString() : 'Never logged in'}</div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <div className="flex justify-end gap-3 font-bold">
-                                            {editingUserId === user.id ? (
-                                                <>
-                                                    <button onClick={() => handleRoleChange(user.id, editRole)} className="text-emerald-600 hover:text-emerald-900">Save</button>
-                                                    <button onClick={() => setEditingUserId(null)} className="text-slate-600 hover:text-slate-900">Cancel</button>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <button onClick={() => { setEditingUserId(user.id); setEditRole(user.role); }} className="text-indigo-600 hover:text-indigo-900">Role</button>
-                                                    <button onClick={() => handleStatusToggle(user.id, user.status)} className={`${user.status === 'ACTIVE' ? 'text-amber-600 hover:text-amber-900' : 'text-emerald-600 hover:text-emerald-900'}`}>
-                                                        {user.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
-                                                    </button>
-                                                    <button onClick={() => handleDeleteUser(user.id)} className="text-red-600 hover:text-red-900">Delete</button>
-                                                </>
-                                            )}
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))
-                        )}
+                        ))}
                     </tbody>
                 </table>
             </div>

@@ -5,10 +5,15 @@ import { useTheme } from '../context/ThemeContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Moon, Sun, LogOut, LayoutDashboard } from 'lucide-react';
 
+/**
+ * Navbar Component
+ * Updated to link to the new Maintenance & Incident pages
+ */
 const Navbar = () => {
     const { user, logout } = useAuth();
     const { theme, toggleTheme } = useTheme();
 
+    // Do not render the navbar if the user is not logged in
     if (!user) return null;
 
     return (
@@ -26,17 +31,32 @@ const Navbar = () => {
                 <nav className="flex items-center gap-4">
                     <div className="hidden lg:flex items-center space-x-6 text-sm font-medium mr-4">
                         <NavLink to="/dashboard" label="Dashboard" />
+                        
+                        {/* USER Role Links */}
                         {user.role === 'USER' && (
                             <>
                                 <NavLink to="/bookings" label="Bookings" />
-                                <NavLink to="/incidents" label="Incidents" />
+                                <NavLink to="/facilities" label="Facilities" />
+                                <NavLink to="/create-ticket" label="Report Incident" className="text-orange-400 font-bold" />
+                                <NavLink to="/my-tickets" label="My Tickets" />
                             </>
                         )}
+                        
+                        {/* ADMIN Role Links */}
                         {user.role === 'ADMIN' && (
                             <>
                                 <NavLink to="/admin/users" label="Users" className="text-blue-500" />
+                                <NavLink to="/admin/incidents" label="Maintenance Hub" className="text-emerald-400" />
                                 <NavLink to="/admin/bookings" label="Requests" />
                                 <NavLink to="/admin/analytics" label="Analytics" />
+                                <NavLink to="/admin/notifications" label="Notifications" />
+                            </>
+                        )}
+
+                        {/* TECHNICIAN Role Links */}
+                        {user.role === 'TECHNICIAN' && (
+                            <>
+                                <NavLink to="/technician/incidents" label="Work Orders" className="text-amber-400" />
                             </>
                         )}
                     </div>

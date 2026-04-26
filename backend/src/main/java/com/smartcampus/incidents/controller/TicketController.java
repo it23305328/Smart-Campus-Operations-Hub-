@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-@RestController
-@RequestMapping("/api/tickets")
+@RestController("incidentTicketController")
+@RequestMapping("/api/incident-tickets")
 @CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173"})
 public class TicketController {
 
