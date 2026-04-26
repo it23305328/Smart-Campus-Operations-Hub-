@@ -33,7 +33,7 @@ const LoginPage = () => {
                 </div>
 
                 {error && (
-                    <div className="bg-red-50 text-red-500 p-3 rounded-lg text-sm text-center">
+                    <div role="alert" aria-live="polite" className="bg-red-50 text-red-500 p-3 rounded-lg text-sm text-center">
                         {error}
                     </div>
                 )}
@@ -84,7 +84,7 @@ const LoginPage = () => {
                         </div>
 
                         <div className="text-sm">
-                            <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
+                            <a href="#" aria-label="Reset password" className="font-medium text-blue-600 hover:text-blue-500">
                                 Forgot your password?
                             </a>
                         </div>
@@ -116,6 +116,7 @@ const LoginPage = () => {
                         <button
                             type="button"
                             onClick={loginWithGoogle}
+                            aria-label="Sign in with Google"
                             className="w-full flex items-center justify-center px-4 py-3 border border-slate-300 rounded-lg shadow-sm bg-white text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                         >
                             <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
