@@ -49,7 +49,7 @@ const ResourceCatalogue = () => {
 
                 {/* Filters Section */}
                 <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 p-6 mb-10 border border-slate-100">
-                    <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                    <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
                         <div className="space-y-2">
                             <label className="text-sm font-semibold text-slate-600 ml-1">Search Name</label>
                             <div className="relative">
@@ -92,6 +92,19 @@ const ResourceCatalogue = () => {
                             </div>
                         </div>
 
+                        <div className="space-y-2">
+                            <label className="text-sm font-semibold text-slate-600 ml-1">Min Capacity</label>
+                            <input
+                                type="number"
+                                min="0"
+                                name="minCapacity"
+                                value={filters.minCapacity}
+                                onChange={handleFilterChange}
+                                placeholder="e.g. 30"
+                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
+                            />
+                        </div>
+
                         <button
                             type="submit"
                             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-6 rounded-xl shadow-lg shadow-blue-500/30 transition-all transform hover:-translate-y-0.5 active:scale-95"
@@ -103,8 +116,9 @@ const ResourceCatalogue = () => {
 
                 {/* Grid Section */}
                 {loading ? (
-                    <div className="flex justify-center items-center h-64">
+                    <div className="flex justify-center items-center h-64" aria-live="polite" aria-busy="true">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                        <span className="sr-only">Loading resources</span>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -140,7 +154,7 @@ const ResourceCatalogue = () => {
                                             <button className="flex-1 bg-slate-900 hover:bg-black text-white py-3 rounded-2xl font-bold transition-all shadow-lg active:scale-95">
                                                 Book Now
                                             </button>
-                                            <button className="p-3 bg-slate-100 text-slate-600 rounded-2xl hover:bg-slate-200 transition-all active:scale-95">
+                                            <button aria-label={`More information about ${resource.name}`} className="p-3 bg-slate-100 text-slate-600 rounded-2xl hover:bg-slate-200 transition-all active:scale-95">
                                                 <Info className="w-6 h-6" />
                                             </button>
                                         </div>
