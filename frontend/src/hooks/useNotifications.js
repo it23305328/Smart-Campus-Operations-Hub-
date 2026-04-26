@@ -15,25 +15,45 @@ const useNotifications = () => {
 
         const socket = new SockJS('http://localhost:8083/ws');
         const stompClient = Stomp.over(socket);
-        stompClientRef.current = stompClient;
-
-        // Disable stomp logging in production if needed
-        // stompClient.debug = () => {};
+        
+        stompClient.debug = null; // Disable noisy debug logs
 
         stompClient.connect({}, (frame) => {
-            console.log('Connected to Notification WebSocket');
+            console.log('Connected to WebSocket');
             
             // Subscribe to user-specific notification queue
-            stompClient.subscribe(`/user/queue/notifications`, (message) => {
+            const subscription = stompClient.subscribe(`/user/queue/notifications`, (message) => {
                 const newNotification = JSON.parse(message.body);
-                setNotifications(prev => [newNotification, ...prev]);
+                console.log("New notification received via WebSocket:", newNotification);
+                setNotifications(prev => {
+                    // Check for duplicate ID to be safe
+                    if (prev.some(n => n.id === newNotification.id)) return prev;
+                    return [newNotification, ...prev];
+                });
                 setUnreadCount(prev => prev + 1);
             });
+
+            return () => {
+                if (subscription) subscription.unsubscribe();
+            };
         }, (error) => {
-            console.error('WebSocket Connection Error:', error);
+            console.error('WebSocket connection error:', error);
         });
 
-        // Initial fetch of notifications
+        // Cleanup on unmount
+        return () => {
+            if (stompClient && stompClient.connected) {
+                stompClient.disconnect(() => {
+                    console.log('Disconnected from WebSocket');
+                });
+            }
+        };
+    }, [user]);
+
+    // Initial fetch of notifications
+    useEffect(() => {
+        if (!user || !user.email) return;
+
         const fetchInitialNotifications = async () => {
             try {
                 const response = await api.get('/api/notifications');
@@ -55,14 +75,27 @@ const useNotifications = () => {
         };
     }, [user?.email]);
 
+    const markAsRead = async (notificationId) => {
+        try {
+            await api.put(`/api/notifications/${notificationId}/read`);
+            setNotifications(prev => 
+                prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n)
+            );
+            setUnreadCount(prev => Math.max(0, prev - 1));
+        } catch (err) {
+            console.error('Failed to mark notification as read:', err);
+        }
+    };
+
     const markAllAsRead = () => {
         setUnreadCount(0);
-        // Note: You should also call an API to mark them as read in DB if needed
+        // Add API call for mark all if needed
     };
 
     return { 
         notifications, 
         unreadCount, 
+        markAsRead,
         clearUnread: markAllAsRead,
         isConnected: !!stompClientRef.current?.connected
     };

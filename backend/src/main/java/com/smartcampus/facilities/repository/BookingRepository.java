@@ -21,6 +21,13 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                                                               @Param("studentId") String studentId,
                                                               @Param("date") java.time.LocalDate date,
                                                               @Param("statuses") List<Booking.BookingStatus> statuses);
+
+    @Query("SELECT CASE WHEN COUNT(b) > 0 THEN true ELSE false END FROM Booking b " +
+           "WHERE b.resource.id = :resourceId AND b.studentId = :studentId " +
+           "AND b.status IN :statuses")
+    boolean existsByResourceIdAndStudentIdAndStatusIn(@Param("resourceId") Long resourceId, 
+                                                       @Param("studentId") String studentId,
+                                                       @Param("statuses") List<Booking.BookingStatus> statuses);
     
     List<Booking> findByStudentId(String studentId);
     

@@ -90,6 +90,7 @@ public class BookingController {
             @PathVariable Long bookingId,
             @RequestParam Booking.BookingStatus status,
             @RequestParam(required = false) String rejectionReason) {
+        System.out.println("API Request: Update booking " + bookingId + " status to " + status);
         BookingResponseDTO booking = bookingService.updateBookingStatus(bookingId, status, rejectionReason);
         return ResponseEntity.ok(booking);
     }

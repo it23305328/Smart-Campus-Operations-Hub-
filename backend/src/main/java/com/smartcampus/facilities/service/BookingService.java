@@ -28,14 +28,21 @@ public class BookingService {
 
     private final BookingRepository bookingRepository;
     private final ResourceRepository resourceRepository;
+    private final com.smartcampus.notifications.service.NotificationService notificationService;
+    private final com.smartcampus.users.UserRepository userRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
     
     private static final String SRI_LANKA_TIMEZONE = "Asia/Colombo";
 
     @Autowired
-    public BookingService(BookingRepository bookingRepository, ResourceRepository resourceRepository) {
+    public BookingService(BookingRepository bookingRepository, 
+                          ResourceRepository resourceRepository,
+                          com.smartcampus.notifications.service.NotificationService notificationService,
+                          com.smartcampus.users.UserRepository userRepository) {
         this.bookingRepository = bookingRepository;
         this.resourceRepository = resourceRepository;
+        this.notificationService = notificationService;
+        this.userRepository = userRepository;
     }
 
     // This runs on a separate thread, so @Transactional works here
@@ -179,6 +186,19 @@ public class BookingService {
             }
 
             Booking savedBooking = bookingRepository.save(booking);
+            
+            // Send notification for successful booking creation
+            try {
+                Long userId = Long.parseLong(savedBooking.getStudentId());
+                userRepository.findById(userId).ifPresent(user -> {
+                    String message = String.format("Booking successful! Your request for %s on %s from %s to %s is pending approval.",
+                            resource.getName(), savedBooking.getReservationDate(), savedBooking.getStartTime(), savedBooking.getEndTime());
+                    notificationService.sendNotification(user, message, com.smartcampus.notifications.model.NotificationType.BOOKING);
+                });
+            } catch (Exception e) {
+                System.err.println("Failed to send booking creation notification: " + e.getMessage());
+            }
+
             return mapToResponseDTO(savedBooking);
         } catch (DataIntegrityViolationException e) {
             throw new RuntimeException("Failed to create booking. The time slot may already be taken.");
@@ -244,6 +264,32 @@ public class BookingService {
         }
         
         Booking updatedBooking = bookingRepository.save(booking);
+        
+        // Send notification for approval or rejection
+        if (status == Booking.BookingStatus.APPROVED || status == Booking.BookingStatus.REJECTED) {
+            try {
+                String studentIdStr = updatedBooking.getStudentId();
+                System.out.println("Processing notification for status update. StudentId: " + studentIdStr);
+                Long userId = Long.parseLong(studentIdStr);
+                userRepository.findById(userId).ifPresentOrElse(user -> {
+                    String action = (status == Booking.BookingStatus.APPROVED) ? "APPROVED" : "REJECTED";
+                    String message = String.format("Your booking for %s on %s has been %s.",
+                            updatedBooking.getResource().getName(), updatedBooking.getReservationDate(), action);
+                    
+                    if (status == Booking.BookingStatus.REJECTED && rejectionReason != null) {
+                        message += " Reason: " + rejectionReason;
+                    }
+                    
+                    System.out.println("Sending status notification to student: " + user.getEmail());
+                    notificationService.sendNotification(user, message, com.smartcampus.notifications.model.NotificationType.BOOKING);
+                }, () -> {
+                    System.err.println("CRITICAL: Student user not found in database for ID: " + userId);
+                });
+            } catch (Exception e) {
+                System.err.println("Failed to send booking status notification: " + e.getMessage());
+            }
+        }
+        
         return mapToResponseDTO(updatedBooking);
     }
 

@@ -28,7 +28,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // Register the "/ws" endpoint, enabling the SockJS fallback options so that 
         // alternate transports can be used if WebSockets are not available
         registry.addEndpoint("/ws")
-                .setAllowedOrigins("http://localhost:5173") // Allow frontend URL
+                .setAllowedOrigins("http://localhost:5173", "http://localhost:3000") // Allow both common frontend ports
                 .withSockJS();
     }
 }

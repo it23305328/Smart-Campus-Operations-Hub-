@@ -67,7 +67,7 @@ const Profile = () => {
         const updatedPrefs = { ...notifPrefs, [key]: !notifPrefs[key] };
         try {
             setNotifLoading(true);
-            const response = await api.put('/api/users/profile/notifications', updatedPrefs);
+            const response = await api.put('/api/notifications/preferences', updatedPrefs);
             setNotifPrefs(response.data);
             triggerToast();
         } catch (error) {

@@ -2,6 +2,7 @@ package com.smartcampus.notifications.controller;
 
 import com.smartcampus.notifications.model.Notification;
 import com.smartcampus.notifications.model.NotificationPreference;
+import com.smartcampus.notifications.dto.NotificationResponseDTO;
 import com.smartcampus.notifications.service.NotificationService;
 import com.smartcampus.users.User;
 import com.smartcampus.users.UserRepository;
@@ -34,16 +35,22 @@ public class NotificationController {
             email = ((UserDetails) principal).getUsername();
         } else if (principal instanceof User) {
             email = ((User) principal).getEmail();
+        } else if (principal instanceof org.springframework.security.oauth2.core.user.OAuth2User) {
+            email = ((org.springframework.security.oauth2.core.user.OAuth2User) principal).getAttribute("email");
         } else {
             email = principal.toString();
         }
         
+        if (email == null || email.isEmpty()) {
+            throw new RuntimeException("Could not identify user email");
+        }
+        
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("User not found: " + email));
     }
 
     @GetMapping
-    public ResponseEntity<List<Notification>> getAllNotifications(Authentication authentication) {
+    public ResponseEntity<List<NotificationResponseDTO>> getAllNotifications(Authentication authentication) {
         try {
             User user = getAuthenticatedUser(authentication);
             // Use email to ensure user only sees their own data

@@ -17,14 +17,17 @@ public class TicketService {
     private final TicketRepository ticketRepository;
     private final TicketCommentRepository commentRepository;
     private final UserRepository userRepository;
+    private final com.smartcampus.notifications.service.NotificationService notificationService;
 
     @Autowired
     public TicketService(TicketRepository ticketRepository, 
                          TicketCommentRepository commentRepository,
-                         UserRepository userRepository) {
+                         UserRepository userRepository,
+                         com.smartcampus.notifications.service.NotificationService notificationService) {
         this.ticketRepository = ticketRepository;
         this.commentRepository = commentRepository;
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
     }
 
     public List<Ticket> getAllTickets() {
@@ -65,7 +68,18 @@ public class TicketService {
         
         ticket.setTechnician(technician);
         ticket.setStatus(TicketStatus.IN_PROGRESS);
-        return ticketRepository.save(ticket);
+        Ticket savedTicket = ticketRepository.save(ticket);
+
+        // Send notification for status update (Technician assigned)
+        try {
+            String message = String.format("A technician has been assigned to your ticket #%d. Status changed to IN_PROGRESS.", 
+                    savedTicket.getId());
+            notificationService.sendNotification(savedTicket.getReporter(), message, com.smartcampus.notifications.model.NotificationType.TICKET);
+        } catch (Exception e) {
+            System.err.println("Failed to send ticket status notification: " + e.getMessage());
+        }
+
+        return savedTicket;
     }
 
     @Transactional
@@ -91,7 +105,18 @@ public class TicketService {
             ticket.setResolvedAt(java.time.LocalDateTime.now());
         }
 
-        return ticketRepository.save(ticket);
+        Ticket savedTicket = ticketRepository.save(ticket);
+
+        // Send notification for status update
+        try {
+            String message = String.format("Update on Ticket #%d: Status changed to %s.", 
+                    savedTicket.getId(), newStatus);
+            notificationService.sendNotification(savedTicket.getReporter(), message, com.smartcampus.notifications.model.NotificationType.TICKET);
+        } catch (Exception e) {
+            System.err.println("Failed to send ticket status notification: " + e.getMessage());
+        }
+
+        return savedTicket;
     }
 
     @Transactional

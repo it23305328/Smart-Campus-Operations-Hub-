@@ -3,6 +3,7 @@ package com.smartcampus.notifications.service;
 import com.smartcampus.notifications.model.Notification;
 import com.smartcampus.notifications.model.NotificationPreference;
 import com.smartcampus.notifications.model.NotificationType;
+import com.smartcampus.notifications.dto.NotificationResponseDTO;
 import com.smartcampus.notifications.repository.NotificationPreferenceRepository;
 import com.smartcampus.notifications.repository.NotificationRepository;
 import com.smartcampus.users.User;
@@ -11,6 +12,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -37,6 +39,8 @@ public class NotificationService {
             case COMMENT -> prefs.isEnableCommentNotifications();
         };
 
+        System.out.println("Notification trigger: " + type + " for user: " + recipient.getEmail() + " (Enabled: " + enabled + ")");
+
         if (enabled) {
             Notification notification = Notification.builder()
                     .recipient(recipient)
@@ -45,12 +49,21 @@ public class NotificationService {
                     .build();
             Notification savedNotification = notificationRepository.save(notification);
             
+            NotificationResponseDTO dto = NotificationResponseDTO.builder()
+                    .id(savedNotification.getId())
+                    .message(savedNotification.getMessage())
+                    .type(savedNotification.getType())
+                    .isRead(savedNotification.isRead())
+                    .createdAt(savedNotification.getCreatedAt())
+                    .build();
+
+            System.out.println("Sending WebSocket notification to user: " + recipient.getEmail());
+            
             // Push via WebSocket to user-specific destination
-            // Using email as the destination identifier
             messagingTemplate.convertAndSendToUser(
                 recipient.getEmail(),
                 "/queue/notifications",
-                savedNotification
+                dto
             );
         }
     }
@@ -59,8 +72,21 @@ public class NotificationService {
         return notificationRepository.findByRecipientOrderByCreatedAtDesc(user);
     }
 
-    public List<Notification> getNotificationsByEmail(String email) {
-        return notificationRepository.findByRecipientEmailOrderByCreatedAtDesc(email);
+    public List<NotificationResponseDTO> getNotificationsByEmail(String email) {
+        return notificationRepository.findByRecipientEmailOrderByCreatedAtDesc(email)
+                .stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
+    private NotificationResponseDTO mapToDTO(Notification n) {
+        return NotificationResponseDTO.builder()
+                .id(n.getId())
+                .message(n.getMessage())
+                .type(n.getType())
+                .isRead(n.isRead())
+                .createdAt(n.getCreatedAt())
+                .build();
     }
 
     @Transactional
