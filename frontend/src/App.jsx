@@ -21,6 +21,8 @@ import Sidebar from './components/layout/Sidebar';
 import Profile from './pages/users/Profile';
 import UserDashboard from './pages/UserDashboard';
 
+import { ThemeProvider } from './context/ThemeContext';
+
 /**
  * Helper component to protect routes from unauthenticated users.
  * Redirects to login if no user session is found.
@@ -30,8 +32,6 @@ const PrivateRoute = ({ children }) => {
   if (loading) return <div className="flex justify-center p-10 font-medium">Loading session...</div>;
   return user ? children : <Navigate to="/login" />;
 };
-
-import { ThemeProvider } from './context/ThemeContext';
 
 export default function App() {
   return (
@@ -71,7 +71,7 @@ function AppContent() {
             {/* Authenticated Dashboard - Accessible by any logged-in user */}
             <Route path="/dashboard" element={
               <PrivateRoute>
-                <UserDashboard />
+                <Home />
               </PrivateRoute>
             } />
 
@@ -148,6 +148,7 @@ function AppContent() {
         </div>
       </main>
     </div>
+  </div>
   );
 }
 
