@@ -2,8 +2,74 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --btn-radius-pill: 9999px;
+  --btn-shadow-soft: 0 8px 20px rgba(37, 99, 235, 0.16);
+}
+
 html {
   scroll-behavior: smooth;
+}
+
+.nav-link-underline {
+  position: relative;
+}
+
+.nav-link-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 100%;
+  height: 2px;
+  background-color: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.2s ease;
+}
+
+.nav-link-underline:hover::after,
+.nav-link-underline:focus-visible::after {
+  transform: scaleX(1);
+}
+
+.btn-focus-ring {
+  border-radius: var(--btn-radius-pill);
+  box-shadow: var(--btn-shadow-soft);
+}
+
+.btn-focus-ring:focus-visible {
+  outline: 3px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+.reveal-fade {
+  animation: fadeInUp 550ms ease-out both;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .reveal-fade {
+    animation: none;
+  }
+
+  .animate-\[float_6s_ease-in-out_infinite\] {
+    animation: none !important;
+  }
 }
 
 @layer base {

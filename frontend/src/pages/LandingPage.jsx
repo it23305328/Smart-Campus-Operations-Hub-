@@ -20,24 +20,26 @@ const LandingPage = () => {
                         SmartCampus<span className="text-orange-500">Hub</span>
                     </div>
                     <nav className="hidden md:flex space-x-8 items-center font-medium text-slate-600">
-                        <a href="#products" className="hover:text-blue-600 transition-colors">Products</a>
-                        <a href="#resources" className="hover:text-blue-600 transition-colors">Resources</a>
+                        <a href="#products" className="nav-link-underline hover:text-blue-600 transition-colors">Products</a>
+                        <a href="#resources" className="nav-link-underline hover:text-blue-600 transition-colors">Resources</a>
+                        <a href="#features" className="nav-link-underline hover:text-blue-600 transition-colors">Features</a>
+                        <a href="#contact" className="nav-link-underline hover:text-blue-600 transition-colors">Contact</a>
                         <button 
                             onClick={() => navigate('/login')}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-full shadow-md shadow-blue-200 transition-all transform hover:-translate-y-0.5 font-semibold"
+                            className="btn-focus-ring bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-full shadow-md shadow-blue-200 transition-all transform hover:-translate-y-0.5 font-semibold"
                         >
                             Login
                         </button>
                     </nav>
                     {/* Mobile Menu Button (simplified for aesthetic) */}
-                    <button className="md:hidden text-slate-600 focus:outline-none">
+                    <button aria-label="Open navigation menu" className="md:hidden text-slate-600 focus:outline-none">
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
                     </button>
                 </div>
             </header>
 
             {/* Hero Section */}
-            <main id="products" className="flex-1 flex flex-col justify-center max-w-7xl mx-auto px-6 pt-12 pb-20 w-full overflow-hidden">
+            <main id="products" className="reveal-fade flex-1 flex flex-col justify-center max-w-7xl mx-auto px-6 pt-12 pb-20 w-full overflow-hidden">
                 <div className="flex flex-col-reverse lg:flex-row items-center gap-12 lg:gap-8 min-h-[70vh]">
                     {/* Left Content */}
                     <div className="flex-1 flex flex-col items-center text-center lg:items-start lg:text-left space-y-6 lg:pr-12">
@@ -53,12 +55,12 @@ const LandingPage = () => {
                         <div className="flex flex-wrap gap-4 justify-center lg:justify-start w-full">
                             <button 
                                 onClick={() => navigate('/login')}
-                                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-full text-lg font-bold shadow-xl shadow-blue-200/80 transition-all transform hover:-translate-y-1"
+                                className="btn-focus-ring bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-full text-lg font-bold shadow-xl shadow-blue-200/80 transition-all transform hover:-translate-y-1"
                             >
-                                Get Started Free
+                                Start Exploring Campus Hub
                             </button>
-                            <button className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-8 py-4 rounded-full text-lg font-bold shadow-sm transition-all">
-                                Request Demo
+                            <button className="btn-focus-ring bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-8 py-4 rounded-full text-lg font-bold shadow-sm transition-all">
+                                Book a Guided Demo
                             </button>
                         </div>
                         
@@ -82,6 +84,8 @@ const LandingPage = () => {
                             src="/hero_illustration.png" 
                             alt="Student interacting with Smart Campus Operations Hub" 
                             className="w-full max-w-2xl lg:max-w-none h-auto object-contain z-10 animate-[float_6s_ease-in-out_infinite]"
+                            loading="lazy"
+                            decoding="async"
                             style={{ maxHeight: '600px' }}
                         />
                     </div>
@@ -89,7 +93,7 @@ const LandingPage = () => {
             </main>
 
             {/* Sub-hero Section */}
-            <section id="resources" className="bg-white py-24 border-t border-slate-100 relative overflow-hidden">
+            <section id="resources" className="reveal-fade bg-white py-24 border-t border-slate-100 relative overflow-hidden">
                 <div className="absolute left-0 top-0 w-full h-px bg-gradient-to-r from-transparent via-blue-200 to-transparent"></div>
                 <div className="max-w-5xl mx-auto px-6 text-center space-y-6 relative z-10">
                     <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">
@@ -102,7 +106,7 @@ const LandingPage = () => {
             </section>
 
             {/* Footer Section with Features */}
-            <footer className="bg-slate-900 text-slate-300 py-20 mt-auto border-t-[8px] border-blue-600">
+            <footer id="features" className="reveal-fade bg-slate-900 text-slate-300 py-20 mt-auto border-t-[8px] border-blue-600">
                 <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12">
                     
                     {/* Features (takes up 4 columns on large screens) */}
@@ -142,13 +146,13 @@ const LandingPage = () => {
                     </div>
 
                     {/* Contact / Help Section */}
-                    <div className="lg:col-span-1 flex flex-col justify-center items-center lg:items-start text-center lg:text-left bg-slate-800/50 p-6 rounded-2xl border border-slate-700/50">
+                    <div id="contact" className="lg:col-span-1 flex flex-col justify-center items-center lg:items-start text-center lg:text-left bg-slate-800/50 p-6 rounded-2xl border border-slate-700/50">
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center text-xl shadow-lg shadow-blue-500/20 mb-4">
                             <FaHeadset />
                         </div>
                         <h4 className="text-white font-bold text-lg mb-2">We are here to help</h4>
                         <p className="text-sm text-slate-400 mb-6">24/7 support for all campus operations and inquiries.</p>
-                        <button className="w-full bg-slate-700 hover:bg-slate-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors">
+                        <button className="btn-focus-ring w-full bg-slate-700 hover:bg-slate-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors">
                             Contact Support
                         </button>
                     </div>
@@ -157,6 +161,7 @@ const LandingPage = () => {
                 <div className="max-w-7xl mx-auto px-6 mt-16 pt-8 border-t border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-slate-500 hover:text-slate-400 transition-colors">
                     <p>&copy; {new Date().getFullYear()} Smart Campus Operations Hub. All rights reserved.</p>
                     <div className="flex space-x-6">
+                        <a href="#contact" className="hover:text-white transition-colors">Contact</a>
                         <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
                         <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
                     </div>
