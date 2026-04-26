@@ -8,11 +8,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Collections;
+import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("/api/users")
 public class UserController {
 
     private final UserRepository userRepository;
@@ -44,5 +44,28 @@ public class UserController {
                     }
                     return ResponseEntity.status(404).body("User record not found");
                 });
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<?> getProfile(Authentication authentication) {
+        return getMe(authentication);
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<?> updateProfile(@RequestBody Map<String, String> request, Authentication authentication) {
+        if (authentication == null || !(authentication.getPrincipal() instanceof OAuth2User)) {
+            return ResponseEntity.status(401).body("Not authenticated");
+        }
+        
+        OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
+        String email = oauth2User.getAttribute("email");
+        
+        return userRepository.findByEmail(email).map(user -> {
+            if (request.containsKey("phoneNumber")) {
+                user.setPhoneNumber(request.get("phoneNumber"));
+                userRepository.save(user);
+            }
+            return ResponseEntity.ok(user);
+        }).orElse(ResponseEntity.notFound().build());
     }
 }

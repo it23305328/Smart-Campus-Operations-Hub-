@@ -31,6 +31,15 @@ public class User {
     @Builder.Default
     private Role role = Role.USER;
 
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserStatus status = UserStatus.ACTIVE;
+
     @Column(name = "google_id", unique = true)
     private String googleId;
+
+    private java.time.LocalDateTime lastLogin;
+    private String ipAddress;
+    private String phoneNumber;
 }

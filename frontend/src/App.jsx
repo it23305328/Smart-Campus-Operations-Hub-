@@ -1,15 +1,25 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import LandingPage from './pages/LandingPage';
+import GuestDashboard from './pages/GuestDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
 import AdminDashboard from './pages/AdminDashboard';
 import Unauthorized from './pages/Unauthorized';
 import CreateTicket from './pages/CreateTicket';
 import IncidentPage from './pages/IncidentPage';
+import ResourceCatalogue from './pages/facilities/ResourceCatalogue';
+import AdminResourceManagement from './pages/facilities/AdminResourceManagement';
+import AnalyticsDashboard from './pages/facilities/AnalyticsDashboard';
+import TechnicianDashboard from './pages/incidents/TechnicianDashboard';
+import TicketDetails from './pages/incidents/TicketDetails';
+import TicketForm from './pages/incidents/TicketForm';
+import Sidebar from './components/layout/Sidebar';
+import Profile from './pages/users/Profile';
+import UserDashboard from './pages/UserDashboard';
 
 /**
  * Helper component to protect routes from unauthenticated users.
@@ -21,32 +31,39 @@ const PrivateRoute = ({ children }) => {
   return user ? children : <Navigate to="/login" />;
 };
 
+import { ThemeProvider } from './context/ThemeContext';
+
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <AppContent />
-      </BrowserRouter>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <AppContent />
+        </BrowserRouter>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
+
 function AppContent() {
   const { user } = useAuth();
+  const location = useLocation();
+
+  const isLandingPage = !user && location.pathname === '/';
 
   return (
-    <div className="min-h-screen flex flex-col font-sans">
-      {/* Global Navigation Bar */}
-      <Navbar />
-
-      <main className="flex-grow bg-slate-50 relative">
-        {/* Visual background decoration */}
-        <div className="absolute inset-0 bg-grid-slate-200 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] bg-[length:20px_20px]"></div>
-
-        <div className="max-w-7xl mx-auto p-8 relative z-10">
+    <div className={`min-h-screen flex font-sans bg-background text-foreground transition-colors duration-500`}>
+      {user && <Sidebar />}
+      
+      <div className="flex-grow flex flex-col min-w-0 relative">
+        {!isLandingPage && <Navbar />}
+        <main className={`flex-grow relative ${!isLandingPage ? 'overflow-y-auto' : ''}`}>
+          {!isLandingPage && <div className="absolute inset-0 bg-grid-slate-200 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] bg-[length:20px_20px] pointer-events-none"></div>}
+          <div className={`${!isLandingPage ? 'max-w-7xl mx-auto p-8 relative z-10' : ''}`}>
           <Routes>
             {/* Public Access Routes */}
-            <Route path="/" element={user ? <Navigate to="/dashboard" /> : <LandingPage />} />
+            <Route path="/" element={user ? <Navigate to="/dashboard" /> : <GuestDashboard />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
@@ -54,7 +71,7 @@ function AppContent() {
             {/* Authenticated Dashboard - Accessible by any logged-in user */}
             <Route path="/dashboard" element={
               <PrivateRoute>
-                <Home />
+                <UserDashboard />
               </PrivateRoute>
             } />
 
@@ -93,6 +110,37 @@ function AppContent() {
               </ProtectedRoute>
             } />
 
+            {/* Facility Module */}
+            <Route path="/facilities" element={
+              <PrivateRoute>
+                <ResourceCatalogue />
+              </PrivateRoute>
+            } />
+
+            <Route path="/admin/facilities" element={
+              <ProtectedRoute roles={['ADMIN']}>
+                <AdminResourceManagement />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/admin/analytics" element={
+              <ProtectedRoute roles={['ADMIN']}>
+                <AnalyticsDashboard />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/incidents/:id" element={
+              <PrivateRoute>
+                <TicketDetails />
+              </PrivateRoute>
+            } />
+
+            <Route path="/profile" element={
+              <PrivateRoute>
+                <Profile />
+              </PrivateRoute>
+            } />
+
             {/* Placeholder Routes for future modules */}
             <Route path="/bookings" element={<ProtectedRoute roles={['USER']}><div className="p-10 bg-white rounded-xl shadow">My Bookings</div></ProtectedRoute>} />
             <Route path="/admin/notifications" element={<ProtectedRoute roles={['ADMIN']}><div className="p-10 bg-white rounded-xl shadow">Settings</div></ProtectedRoute>} />
@@ -119,7 +167,7 @@ function Home() {
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 text-left">
-        <ModuleCard title="Facilities" description="Monitor campus rooms." color="from-teal-400 to-emerald-500" icon="🏢" onClick={() => { }} />
+        <ModuleCard title="Facilities" description="Monitor campus rooms." color="from-teal-400 to-emerald-500" icon="🏢" onClick={() => navigate('/facilities')} />
         <ModuleCard title="Bookings" description="Manage your reservations." color="from-sky-400 to-blue-500" icon="📅" onClick={() => navigate('/bookings')} />
 
         {/* DYNAMIC CARD LOGIC: 
