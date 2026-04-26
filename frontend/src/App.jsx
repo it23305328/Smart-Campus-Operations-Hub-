@@ -23,7 +23,6 @@ import MyBookings from './pages/facilities/MyBookings';
 import CreateTicket from './pages/CreateTicket';
 import IncidentPage from './pages/IncidentPage';
 
-
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return <div>Loading...</div>;
@@ -120,7 +119,6 @@ function AppContent() {
                 <AdminBookingRequests />
               </ProtectedRoute>
             } />
-
             <Route path="/admin/analytics" element={
               <ProtectedRoute roles={['ADMIN']}>
                 <AnalyticsDashboard />
@@ -138,7 +136,6 @@ function AppContent() {
                 <MyBookings />
               </PrivateRoute>
             } />
-
             <Route path="/incidents/:id" element={
               <PrivateRoute>
                 <TicketDetails />

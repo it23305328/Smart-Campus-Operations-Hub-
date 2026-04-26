@@ -6,9 +6,11 @@ import { Search, MapPin, Users, Info, CheckCircle, Eye, XCircle, Clock, X } from
 import BookingModal from './BookingModal';
 import ResourceDetailsModal from './ResourceDetailsModal';
 import ConfirmationModal from './ConfirmationModal';
+import { useAuth } from '../../context/AuthContext';
 import { motion } from 'framer-motion';
 
 const ResourceCatalogue = ({ userRole = 'USER' }) => {
+    const { user } = useAuth();
     const [resources, setResources] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState({
@@ -34,8 +36,8 @@ const ResourceCatalogue = ({ userRole = 'USER' }) => {
         onConfirm: () => {}
     });
 
-    const isAdmin = userRole === 'ADMIN';
-    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+    const isAdmin = userRole === 'ADMIN' || user?.role === 'ADMIN';
+    const currentUser = user || {};
 
     useEffect(() => {
         fetchResources();

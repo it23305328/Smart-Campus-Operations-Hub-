@@ -44,7 +44,6 @@ public class Resource {
 
     @Column(name = "slot_duration_minutes")
     private Integer slotDurationMinutes; // 120 for MEETING_ROOM (2 hours)
-
     @Lob
     @Column(columnDefinition = "TEXT")
     private String availabilityWindows; // Store as JSON string
@@ -53,7 +52,6 @@ public class Resource {
         ACTIVE,
         OUT_OF_SERVICE
     }
-    
     // Helper method to get formatted available time
     public String getFormattedAvailableTime() {
         if (availableFrom != null && availableTo != null) {
