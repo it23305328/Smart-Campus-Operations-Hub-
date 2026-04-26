@@ -20,6 +20,8 @@ import Profile from './pages/users/Profile';
 import UserDashboard from './pages/UserDashboard';
 import AdminBookingRequests from './pages/facilities/AdminBookingRequests';
 import MyBookings from './pages/facilities/MyBookings';
+import CreateTicket from './pages/CreateTicket';
+import IncidentPage from './pages/IncidentPage';
 
 
 const PrivateRoute = ({ children }) => {
@@ -72,6 +74,28 @@ function AppContent() {
                 <UserDashboard />
               </PrivateRoute>
             } />
+
+            {/* Incident Module: User Route (View Own Tickets) */}
+            <Route path="/my-tickets" element={
+              <ProtectedRoute roles={['USER', 'ADMIN', 'TECHNICIAN']}>
+                <IncidentPage />
+              </ProtectedRoute>
+            } />
+
+            {/* Incident Module: User Route (Create Ticket) */}
+            <Route path="/create-ticket" element={
+              <ProtectedRoute roles={['USER', 'ADMIN', 'TECHNICIAN']}>
+                <CreateTicket />
+              </ProtectedRoute>
+            } />
+
+            {/* Incident Module: Admin Route (View/Manage All Tickets) */}
+            <Route path="/admin/incidents" element={
+              <ProtectedRoute roles={['ADMIN']}>
+                <IncidentPage />
+              </ProtectedRoute>
+            } />
+
 
             <Route path="/admin/users" element={
               <ProtectedRoute roles={['ADMIN']}>

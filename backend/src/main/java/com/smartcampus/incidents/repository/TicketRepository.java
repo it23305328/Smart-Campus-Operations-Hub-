@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-@Repository
+@Repository("incidentTicketRepository")
 public interface TicketRepository extends JpaRepository<Ticket, Long> {
     List<Ticket> findByReporter(User reporter);
     List<Ticket> findByTechnician(User technician);

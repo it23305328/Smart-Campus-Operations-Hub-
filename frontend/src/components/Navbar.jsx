@@ -29,12 +29,15 @@ const Navbar = () => {
                         {user.role === 'USER' && (
                             <>
                                 <NavLink to="/mybookings" label="Bookings" />
-                                <NavLink to="/incidents" label="Incidents" />
+                                {/* <NavLink to="/incidents" label="Incidents" /> */}
+                                <NavLink to="/create-ticket" label="Report Incident" className="text-orange-400 font-bold" />
+                                <NavLink to="/my-tickets" label="My Tickets" />
                             </>
                         )}
                         {user.role === 'ADMIN' && (
                             <>
                                 <NavLink to="/admin/users" label="Users" className="text-blue-500" />
+                                <NavLink to="/admin/incidents" label="Maintenance Hub" className="text-emerald-400" />
                                 <NavLink to="/admin/bookings" label="All Bookings" />
                                 <NavLink to="/admin/analytics" label="Analytics" />
                             </>

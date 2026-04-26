@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-@Service
+@Service("incidentTicketService")
 public class TicketService {
 
     private final TicketRepository ticketRepository;
