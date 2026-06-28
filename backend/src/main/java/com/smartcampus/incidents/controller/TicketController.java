@@ -1,19 +1,27 @@
 package com.smartcampus.incidents.controller;
 
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.smartcampus.incidents.model.Ticket;
 import com.smartcampus.incidents.model.TicketComment;
 import com.smartcampus.incidents.model.TicketStatus;
 import com.smartcampus.incidents.service.TicketService;
 import com.smartcampus.users.User;
 import com.smartcampus.users.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.core.user.OAuth2User;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Map;
 
 @RestController("incidentTicketController")
 @RequestMapping("/api/incident-tickets")
@@ -23,7 +31,6 @@ public class TicketController {
     private final TicketService ticketService;
     private final UserRepository userRepository;
 
-    @Autowired
     public TicketController(TicketService ticketService, UserRepository userRepository) {
         this.ticketService = ticketService;
         this.userRepository = userRepository;
@@ -37,13 +44,13 @@ public class TicketController {
     @GetMapping
     public ResponseEntity<List<Ticket>> getAllTickets(@AuthenticationPrincipal OAuth2User principal) {
         User user = resolveCurrentUser(principal);
-        if (user.getRole().name().equals("ADMIN")) {
-            return ResponseEntity.ok(ticketService.getAllTickets());
-        } else if (user.getRole().name().equals("TECHNICIAN")) {
-            return ResponseEntity.ok(ticketService.getTicketsByTechnician(user));
-        } else {
-            return ResponseEntity.ok(ticketService.getTicketsByReporter(user));
-        }
+        String roleName = user.getRole().name();
+
+        return switch (roleName) {
+            case "ADMIN" -> ResponseEntity.ok(ticketService.getAllTickets());
+            case "TECHNICIAN" -> ResponseEntity.ok(ticketService.getTicketsByTechnician(user));
+            default -> ResponseEntity.ok(ticketService.getTicketsByReporter(user));
+        };
     }
 
     @GetMapping("/{id}")
@@ -55,14 +62,13 @@ public class TicketController {
     @SuppressWarnings("unchecked")
     public ResponseEntity<Ticket> createTicket(@RequestBody Map<String, Object> payload, @AuthenticationPrincipal OAuth2User principal) {
         User user = resolveCurrentUser(principal);
-        Ticket ticket = Ticket.builder()
-                .category((String) payload.get("category"))
-                .description((String) payload.get("description"))
-                .priority(com.smartcampus.incidents.model.TicketPriority.valueOf((String) payload.get("priority")))
-                .contactDetails((String) payload.get("contactDetails"))
-                .reporter(user)
-                .build();
-        
+        Ticket ticket = new Ticket();
+        ticket.setCategory((String) payload.get("category"));
+        ticket.setDescription((String) payload.get("description"));
+        ticket.setPriority(com.smartcampus.incidents.model.TicketPriority.valueOf((String) payload.get("priority")));
+        ticket.setContactDetails((String) payload.get("contactDetails"));
+        ticket.setReporter(user);
+
         List<String> imageUrls = (List<String>) payload.get("imageUrls");
         return ResponseEntity.ok(ticketService.createTicket(ticket, imageUrls));
     }

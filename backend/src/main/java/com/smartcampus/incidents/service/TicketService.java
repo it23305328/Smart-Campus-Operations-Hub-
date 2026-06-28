@@ -18,7 +18,6 @@ public class TicketService {
     private final TicketCommentRepository commentRepository;
     private final UserRepository userRepository;
 
-    @Autowired
     public TicketService(TicketRepository ticketRepository, 
                          TicketCommentRepository commentRepository,
                          UserRepository userRepository) {

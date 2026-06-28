@@ -20,12 +20,12 @@ const CreateTicket = () => {
     const handleFileChange = (e) => {
         const files = Array.from(e.target.files);
         if (files.length > 3) {
-            alert("ඔයාට උපරිම පින්තූර 3ක් විතරයි අප්ලෝඩ් කරන්න පුළුවන්!");
+            alert("You can upload only 3 images!");
             e.target.value = null;
             return;
         }
         setImages(files);
-        
+
         // Generate previews
         const newPreviews = files.map(file => URL.createObjectURL(file));
         setPreviews(newPreviews);
@@ -39,14 +39,14 @@ const CreateTicket = () => {
         if (!contact.trim()) newErrors.contact = "Contact details are required";
         if (!description.trim()) newErrors.description = "Detailed description is required";
         if (description.length < 10) newErrors.description = "Description must be at least 10 characters";
-        
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         if (!validateForm()) {
             alert("Please fill in all required fields correctly.");
             return;
@@ -70,11 +70,11 @@ const CreateTicket = () => {
                 }
             });
             alert("Incident Report Submitted Successfully!");
-            setTitle(''); 
+            setTitle('');
             setCategory('');
             setPriority('NORMAL');
             setContact('');
-            setDescription(''); 
+            setDescription('');
             setImages([]);
             setPreviews([]);
             navigate('/dashboard');
@@ -89,7 +89,7 @@ const CreateTicket = () => {
     return (
         <div className="min-h-screen bg-slate-50/50 py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-2xl mx-auto">
-                <button 
+                <button
                     onClick={() => navigate(-1)}
                     className="flex items-center text-slate-500 hover:text-blue-600 transition mb-6 font-medium"
                 >
@@ -110,13 +110,13 @@ const CreateTicket = () => {
                     <form onSubmit={handleSubmit} className="p-8 space-y-6">
                         <div>
                             <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wider">Issue Title</label>
-                            <input 
-                                type="text" 
-                                placeholder="e.g., Broken projector in Hall B" 
+                            <input
+                                type="text"
+                                placeholder="e.g., Broken projector in Hall B"
                                 className={`w-full p-4 bg-slate-50 border-2 rounded-2xl focus:bg-white outline-none transition-all text-slate-800 font-medium ${errors.title ? 'border-rose-500 bg-rose-50/10' : 'border-slate-100 focus:border-blue-500'}`}
-                                value={title} 
-                                onChange={(e) => { setTitle(e.target.value); setErrors(p => ({...p, title: ''})); }} 
-                                required 
+                                value={title}
+                                onChange={(e) => { setTitle(e.target.value); setErrors(p => ({ ...p, title: '' })); }}
+                                required
                             />
                             {errors.title && <p className="text-rose-500 text-[10px] font-black uppercase mt-2 tracking-widest">{errors.title}</p>}
                         </div>
@@ -124,10 +124,10 @@ const CreateTicket = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wider">Category</label>
-                                <select 
+                                <select
                                     className={`w-full p-4 bg-slate-50 border-2 rounded-2xl focus:bg-white outline-none transition-all text-slate-800 font-medium appearance-none ${errors.category ? 'border-rose-500 bg-rose-50/10' : 'border-slate-100 focus:border-blue-500'}`}
                                     value={category}
-                                    onChange={(e) => { setCategory(e.target.value); setErrors(p => ({...p, category: ''})); }}
+                                    onChange={(e) => { setCategory(e.target.value); setErrors(p => ({ ...p, category: '' })); }}
                                     required
                                 >
                                     <option value="">Select Category...</option>
@@ -141,7 +141,7 @@ const CreateTicket = () => {
                             </div>
                             <div>
                                 <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wider">Priority</label>
-                                <select 
+                                <select
                                     className="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-blue-500 focus:bg-white outline-none transition-all text-slate-800 font-medium appearance-none"
                                     value={priority}
                                     onChange={(e) => setPriority(e.target.value)}
@@ -157,25 +157,25 @@ const CreateTicket = () => {
 
                         <div>
                             <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wider">Preferred Contact Details</label>
-                            <input 
-                                type="text" 
-                                placeholder="Phone number or WhatsApp" 
+                            <input
+                                type="text"
+                                placeholder="Phone number or WhatsApp"
                                 className={`w-full p-4 bg-slate-50 border-2 rounded-2xl focus:bg-white outline-none transition-all text-slate-800 font-medium ${errors.contact ? 'border-rose-500 bg-rose-50/10' : 'border-slate-100 focus:border-blue-500'}`}
-                                value={contact} 
-                                onChange={(e) => { setContact(e.target.value); setErrors(p => ({...p, contact: ''})); }} 
-                                required 
+                                value={contact}
+                                onChange={(e) => { setContact(e.target.value); setErrors(p => ({ ...p, contact: '' })); }}
+                                required
                             />
                             {errors.contact && <p className="text-rose-500 text-[10px] font-black uppercase mt-2 tracking-widest">{errors.contact}</p>}
                         </div>
 
                         <div>
                             <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wider">Detailed Description</label>
-                            <textarea 
-                                placeholder="Please provide specific details about the problem..." 
+                            <textarea
+                                placeholder="Please provide specific details about the problem..."
                                 className={`w-full p-4 bg-slate-50 border-2 rounded-2xl h-40 focus:bg-white outline-none transition-all text-slate-800 font-medium ${errors.description ? 'border-rose-500 bg-rose-50/10' : 'border-slate-100 focus:border-blue-500'}`}
-                                value={description} 
-                                onChange={(e) => { setDescription(e.target.value); setErrors(p => ({...p, description: ''})); }} 
-                                required 
+                                value={description}
+                                onChange={(e) => { setDescription(e.target.value); setErrors(p => ({ ...p, description: '' })); }}
+                                required
                             />
                             {errors.description && <p className="text-rose-500 text-[10px] font-black uppercase mt-2 tracking-widest">{errors.description}</p>}
                         </div>
@@ -201,12 +201,12 @@ const CreateTicket = () => {
                             </div>
                         </div>
 
-                        <button 
-                            type="submit" 
-                            disabled={loading} 
+                        <button
+                            type="submit"
+                            disabled={loading}
                             className={`w-full py-4 rounded-2xl font-black text-lg tracking-wide transition-all shadow-lg
-                                ${loading 
-                                    ? "bg-slate-200 text-slate-400 cursor-not-allowed" 
+                                ${loading
+                                    ? "bg-slate-200 text-slate-400 cursor-not-allowed"
                                     : "bg-blue-600 text-white hover:bg-blue-700 shadow-blue-200 hover:shadow-blue-300 transform hover:-translate-y-1"}`}
                         >
                             {loading ? "PROCESSING..." : "SUBMIT REPORT"}
@@ -218,4 +218,4 @@ const CreateTicket = () => {
     );
 };
 
-export default CreateTicket;
+export default CreateTicket;
